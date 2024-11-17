@@ -5,6 +5,8 @@ public class CPU {
     private CpuRAM ram;
 
     //TODO rewrite this logic some time (now, the number can get VERY big)
+    // Before instruction --> increment cycle counter --> tell the PPU and APU also to run (PPU: cycles*3)
+    // After instruction is finished --> decrement
     private long cycles;
     //private int clocks;
 
@@ -98,6 +100,78 @@ public class CPU {
                 ldx_absolute_y(value);
                 cycles += 4; //TODO if page crossed it's 5 cycles
                 break;
+            case 0xA0:
+                ldy_immediate(value);
+                cycles += 2;
+                break;
+            case 0xA4:
+                ldy_zeropage(value);
+                cycles += 3;
+                break;
+            case 0xB4:
+                ldy_zeropage_x(value);
+                cycles += 4;
+                break;
+            case 0xAC:
+                ldy_absolute(value);
+                cycles += 4;
+                break;
+            case 0xBC:
+                ldy_absolute_x(value);
+                cycles += 4; //TODO if page crossed it's 5 cycles
+                break;
+            case 0x85:
+                sta_zeropage(value);
+                cycles += 3;
+                break;
+            case 0x95:
+                sta_zeropage_x(value);
+                cycles += 4;
+                break;
+            case 0x8D:
+                sta_absolute(value);
+                cycles += 4;
+                break;
+            case 0x9D:
+                sta_absolute_x(value);
+                cycles += 5;
+                break;
+            case 0x99:
+                sta_absolute_y(value);
+                cycles += 5;
+                break;
+            case 0x81:
+                sta_indirect_x(value);
+                cycles += 6;
+                break;
+            case 0x91:
+                sta_indirect_y(value);
+                cycles += 6;
+                break;
+            case 0x86:
+                stx_zeropage(value);
+                cycles += 3;
+                break;
+            case 0x96:
+                stx_zeropage_y(value);
+                cycles += 4;
+                break;
+            case 0x8E:
+                stx_absolute(value);
+                cycles += 4;
+                break;
+            case 0x84:
+                sty_zeropage(value);
+                cycles += 3;
+                break;
+            case 0x94:
+                sty_zeropage_x(value);
+                cycles += 4;
+                break;
+            case 0x8C:
+                sty_absolute(value);
+                cycles += 4;
+                break;
         }
     }
 
@@ -173,11 +247,149 @@ public class CPU {
         setZeroFlag(X);
         setNegativeFlag(X);
     }
-    
-    //TODO Implement the rest of LDX
+
+    private void ldx_zeropage(int addr) {
+        X = ram.read(addr);
+        setZeroFlag(X);
+        setNegativeFlag(X);
+    }
+
+    private void ldx_zeropage_y(int addr) {
+        int _addr = addr + Y;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        X = ram.read(_addr);
+        setZeroFlag(X);
+        setNegativeFlag(X);
+    }
+
+    private void ldx_absolute(int addr) {
+        X = ram.read(addr);
+        setZeroFlag(X);
+        setNegativeFlag(X);
+    }
+
+    private void ldx_absolute_y(int addr) {
+        int _addr = addr + Y;
+        X = ram.read(_addr);
+        setZeroFlag(X);
+        setNegativeFlag(X);
+    }
 
     // -- LDY --
-    //TODO Implement LDY
+
+    private void ldy_immediate(int value) {
+        Y = value;
+        setZeroFlag(Y);
+        setNegativeFlag(Y);
+    }
+
+    private void ldy_zeropage(int addr) {
+        Y = ram.read(addr);
+        setZeroFlag(Y);
+        setNegativeFlag(Y);
+    }
+
+    private void ldy_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        Y = ram.read(_addr);
+        setZeroFlag(Y);
+        setNegativeFlag(Y);
+    }
+
+    private void ldy_absolute(int addr) {
+        Y = ram.read(addr);
+        setZeroFlag(Y);
+        setNegativeFlag(Y);
+    }
+
+    private void ldy_absolute_x(int addr) {
+        int _addr = addr + X;
+        Y = ram.read(_addr);
+        setZeroFlag(Y);
+        setNegativeFlag(Y);
+    }
+
+    // -- STA --
+
+    private void sta_zeropage(int addr) {
+        ram.write(addr, A);
+    }
+
+    private void sta_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        ram.write(_addr, A);
+    }
+
+    private void sta_absolute(int addr) {
+        ram.write(addr, A);
+    }
+
+    private void sta_absolute_x(int addr) {
+        int _addr = addr + X;
+        ram.write(_addr, A);
+    }
+
+    private void sta_absolute_y(int addr) {
+        int _addr = addr + Y;
+        ram.write(_addr, A);
+    }
+
+    private void sta_indirect_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        ram.write(_addr, A);
+    }
+
+    private void sta_indirect_y(int addr) {
+        int _addr = addr + Y;
+        ram.write(_addr, A);
+    }
+
+    // -- STX --
+
+    private void stx_zeropage(int addr) {
+        ram.write(addr, X);
+    }
+
+    private void stx_zeropage_y(int addr) {
+        int _addr = addr + Y;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        ram.write(_addr, X);
+    }
+
+    private void stx_absolute(int addr) {
+        ram.write(addr, X);
+    }
+
+    // -- STY --
+
+    private void sty_zeropage(int addr) {
+        ram.write(addr, Y);
+    }
+
+    private void sty_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        ram.write(_addr, Y);
+    }
+
+    private void sty_absolute(int addr) {
+        ram.write(addr, Y);
+    }
 
 
     private void setZeroFlag(int value) {
