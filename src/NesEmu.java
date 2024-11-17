@@ -3,6 +3,12 @@
  */
 public class NesEmu {
     public static void main(String[] args) {
-        System.out.println("Hello NesEmu!");
+        //TODO
+        // --> Add tests
+        // --> Add frontend (Java Swing)
+    }
+
+    public static void test_cpu() {
+
     }
 }
