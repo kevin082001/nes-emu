@@ -2,7 +2,7 @@
     Created 2024-11-13
  */
 public class CPU {
-    private CpuRAM ram;
+    private CpuRAM ram = new CpuRAM();
 
     //TODO rewrite this logic some time (now, the number can get VERY big)
     // Before instruction --> increment cycle counter --> tell the PPU and APU also to run (PPU: cycles*3)
@@ -184,8 +184,7 @@ public class CPU {
     }
 
     private void lda_zeropage(int addr) {
-        int value = ram.read(addr);
-        A = value;
+        A = ram.read(addr);
         setZeroFlag(A);
         setNegativeFlag(A);
     }
@@ -399,5 +398,25 @@ public class CPU {
     private void setNegativeFlag(int value) {
         String binary = String.format("%8s", Integer.toBinaryString(value)).replace(' ', '0'); //8-bit binary
         negativeFlag = binary.charAt(0) == '1' ? 1 : 0;
+    }
+
+    public int read_a() {
+        return A;
+    }
+
+    public int read_x() {
+        return X;
+    }
+
+    public int read_y() {
+        return Y;
+    }
+
+    public long get_cycles() {
+        return cycles;
+    }
+
+    public CpuRAM getRam() {
+        return ram;
     }
 }
