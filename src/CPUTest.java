@@ -21,13 +21,7 @@ public class CPUTest {
         cpu.executeInstruction(0xA9, expected);
         int a = cpu.read_a();
 
-        testsRun++;
-        if (a == expected) {
-            testsPassed++;
-        } else {
-            testsFailed++;
-            formatErrorMsg("lda_immediate", Integer.toHexString(expected), Integer.toHexString(a));
-        }
+        assertEquals(a, expected, "lda_immediate");
     }
 
     public void test_lda_zeropage() {
@@ -40,13 +34,7 @@ public class CPUTest {
         int a = cpu.read_a();
         int expected = ram.read(addr);
 
-        testsRun++;
-        if (a == expected) {
-            testsPassed++;
-        } else {
-            testsFailed++;
-            formatErrorMsg("lda_zeropage", Integer.toHexString(expected), Integer.toHexString(a));
-        }
+        assertEquals(a, expected, "lda_zeropage");
     }
 
     public void test_lda_zeropage_x() {
@@ -62,13 +50,7 @@ public class CPUTest {
         int a = cpu.read_a();
         int expected = ram.read(0xF3);
 
-        testsRun++;
-        if (a == expected) {
-            testsPassed++;
-        } else {
-            testsFailed++;
-            formatErrorMsg("lda_zeropage_x", Integer.toHexString(expected), Integer.toHexString(a));
-        }
+        assertEquals(a, expected, "lda_zeropage_x");
     }
 
     public void test_lda_zeropage_x_wraparound() {
@@ -84,13 +66,7 @@ public class CPUTest {
         int a = cpu.read_a();
         int expected = ram.read(0x20);
 
-        testsRun++;
-        if (a == expected) {
-            testsPassed++;
-        } else {
-            testsFailed++;
-            formatErrorMsg("lda_zeropage_x_wraparound", Integer.toHexString(expected), Integer.toHexString(a));
-        }
+        assertEquals(a, expected, "lda_zeropage_x_wraparound");
     }
 
     public void test_lda_absolute() {
@@ -103,16 +79,90 @@ public class CPUTest {
         int a = cpu.read_a();
         int expected = ram.read(0xACDC);
 
-        testsRun++;
-        if (a == expected) {
-            testsPassed++;
-        } else {
-            testsFailed++;
-            formatErrorMsg("lda_absolute", Integer.toHexString(expected), Integer.toHexString(a));
-        }
+        assertEquals(a, expected, "lda_absolute");
     }
 
-    //TODO test rest of LDA
+    public void test_lda_absolute_x() {
+        //Pre-write memory location
+        ram.write(0xADAC, 0xA6);
+
+        //We have to load X first
+        cpu.executeInstruction(0xA2, 0x24);
+
+        //LDA $AD88,X ($AD88 + $0024 = $ADAC)
+        cpu.executeInstruction(0xBD, 0xAD88);
+
+        int a = cpu.read_a();
+        int expected = ram.read(0xADAC);
+
+        assertEquals(a, expected, "lda_absolute_x");
+    }
+
+    public void test_lda_absolute_y() {
+        //Pre-write memory location
+        ram.write(0xADAC, 0xA6);
+
+        //We have to load Y first
+        cpu.executeInstruction(0xA0, 0x25);
+
+        //LDA $AD87, Y ($AD87 + $0025 = $ADAC)
+        cpu.executeInstruction(0xB9, 0xAD87);
+
+        int a = cpu.read_a();
+        int expected = ram.read(0xADAC);
+
+        assertEquals(a, expected, "lda_absolute_y");
+    }
+
+    public void test_lda_indirect_x() {
+        //Pre-write memory location
+        ram.write(0xD2, 0xA6);
+
+        //We have to load X first
+        cpu.executeInstruction(0xA2, 0x25);
+
+        //LDA ($AD, X) ($AD + $25 = $D2)
+        cpu.executeInstruction(0xA1, 0xAD);
+
+        int a = cpu.read_a();
+        int expected = ram.read(0xD2);
+
+        assertEquals(a, expected, "lda_indirect_x");
+    }
+
+    public void test_lda_indirect_x_wraparound() {
+        //Pre-write memory location
+        ram.write(0x03, 0xA6);
+
+        //We have to load X first
+        cpu.executeInstruction(0xA2, 0x04);
+
+        //LDA ($FF, X) ($FF + $04 = $03 with wraparound)
+        cpu.executeInstruction(0xA1, 0xFF);
+
+        int a = cpu.read_a();
+        int expected = ram.read(0x03);
+
+        assertEquals(a, expected, "lda_indirect_x_wraparound");
+    }
+
+    public void test_lda_indirect_y() {
+        //Pre-write memory location
+        ram.write(0xA010, 0x55);
+
+        //We have to load Y first
+        cpu.executeInstruction(0xA0, 0x10);
+
+        //LDA ($A000), Y ($A000 + $0010 = $A010)
+        cpu.executeInstruction(0xB1, 0xA000);
+
+        int a = cpu.read_a();
+        int expected = ram.read(0xA010);
+
+        assertEquals(a, expected, "lda_indirect_y");
+    }
+
+    // -- LDX --
 
     public void test_ldx_immediate() {
         // LDX #$B3
@@ -120,14 +170,26 @@ public class CPUTest {
         cpu.executeInstruction(0xA2, expected);
         int x = cpu.read_x();
 
-        testsRun++;
-        if (x == expected) {
-            testsPassed++;
-        } else {
-            testsFailed++;
-            formatErrorMsg("ldx_immediate", Integer.toHexString(expected), Integer.toHexString(x));
-        }
+        assertEquals(x, expected, "ldx_immediate");
     }
+
+    public void test_ldx_zeropage() {
+
+    }
+
+    public void test_ldx_zeropage_y() {
+
+    }
+
+    public void test_ldx_absolute() {
+
+    }
+
+    public void test_ldx_absolute_y() {
+
+    }
+
+    // -- LDY --
 
 
     public void printTestResults() {
@@ -141,6 +203,16 @@ public class CPUTest {
             for (String error : errorMessages) {
                 System.out.println(error);
             }
+        }
+    }
+
+    private void assertEquals(int actual, int expected, String instruction) {
+        testsRun++;
+        if (actual == expected) {
+            testsPassed++;
+        } else {
+            testsFailed++;
+            formatErrorMsg(instruction, Integer.toHexString(expected), Integer.toHexString(actual));
         }
     }
 
