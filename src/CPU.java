@@ -181,6 +181,8 @@ public class CPU {
         A = value;
         setZeroFlag(A);
         setNegativeFlag(A);
+
+        System.out.println("LDA #$" + Integer.toHexString(value));
     }
 
     private void lda_zeropage(int addr) {
@@ -245,6 +247,8 @@ public class CPU {
         X = value;
         setZeroFlag(X);
         setNegativeFlag(X);
+
+        System.out.println("LDX #$" + Integer.toHexString(value));
     }
 
     private void ldx_zeropage(int addr) {
@@ -282,6 +286,8 @@ public class CPU {
         Y = value;
         setZeroFlag(Y);
         setNegativeFlag(Y);
+
+        System.out.println("LDY #$" + Integer.toHexString(value));
     }
 
     private void ldy_zeropage(int addr) {
@@ -317,6 +323,8 @@ public class CPU {
 
     private void sta_zeropage(int addr) {
         ram.write(addr, A);
+
+        System.out.println("STA $" + Integer.toHexString(addr));
     }
 
     private void sta_zeropage_x(int addr) {
@@ -358,6 +366,8 @@ public class CPU {
 
     private void stx_zeropage(int addr) {
         ram.write(addr, X);
+
+        System.out.println("STX $" + Integer.toHexString(addr));
     }
 
     private void stx_zeropage_y(int addr) {
@@ -376,6 +386,9 @@ public class CPU {
 
     private void sty_zeropage(int addr) {
         ram.write(addr, Y);
+
+        System.out.println("STY $" + Integer.toHexString(addr));
+        System.exit(0);
     }
 
     private void sty_zeropage_x(int addr) {
@@ -390,6 +403,8 @@ public class CPU {
         ram.write(addr, Y);
     }
 
+
+    // -- Status flags --
 
     private void setZeroFlag(int value) {
         zeroFlag = value == 0 ? 1 : 0;
