@@ -11,7 +11,7 @@ public class CPUTest {
     List<String> errorMessages = new ArrayList<>();
 
     public CPUTest() {
-        cpu = new CPU();
+        cpu = new CPU(16, 8);
         ram = cpu.getRam();
     }
 
@@ -174,22 +174,106 @@ public class CPUTest {
     }
 
     public void test_ldx_zeropage() {
+        //Pre-write RAM
+        ram.write(0xF3, 0x55);
 
+        cpu.executeInstruction(0xA6, 0xF3);
+
+        int x = cpu.read_x();
+        int expected = ram.read(0xF3);
+
+        assertEquals(x, expected, "ldx_zeropage");
     }
 
     public void test_ldx_zeropage_y() {
+        //Pre-write RAM
+        ram.write(0x70, 0x55);
 
+        //Load Y first
+        cpu.executeInstruction(0xA0, 0x10);
+
+        ram.write(0x70, 0x66);
+
+        cpu.executeInstruction(0xB6, 0x60);
+
+        int x = cpu.read_x();
+        int expected = ram.read(0x70);
+
+        assertEquals(x, expected, "ldx_zeropage_y");
+    }
+
+    public void test_ldx_zeropage_y_wraparound() {
+        //Pre-write RAM
+        ram.write(0x10, 0x55);
+
+        //Load Y first
+        cpu.executeInstruction(0xA0, 0x80);
+
+        ram.write(0x10, 0x66);
+
+        cpu.executeInstruction(0xB6, 0x90);
+
+        int x = cpu.read_x();
+        int expected = ram.read(0x10);
+
+        assertEquals(x, expected, "ldx_zeropage_y_wraparound");
     }
 
     public void test_ldx_absolute() {
+        //Pre-write RAM
+        ram.write(0x8080, 0x77);
 
+        cpu.executeInstruction(0xAE, 0x8080);
+
+        int x = cpu.read_x();
+        int expected = ram.read(0x8080);
+
+        assertEquals(x, expected, "ldx_absolute");
     }
 
     public void test_ldx_absolute_y() {
+        //Pre-write RAM
+        ram.write(0x8099, 0x77);
 
+        //Load Y first
+        cpu.executeInstruction(0xA0, 0x19);
+
+        cpu.executeInstruction(0xAE, 0x8080);
+
+        int x = cpu.read_x();
+        int expected = ram.read(0x8099);
+
+        assertEquals(x, expected, "ldx_absolute_y");
     }
 
     // -- LDY --
+
+    public void test_ldy_immediate() {
+        int expected = 0x6F;
+        cpu.executeInstruction(0xA0, expected);
+        int y = cpu.read_y();
+        assertEquals(y, expected, "ldy_immediate");
+    }
+
+    public void test_ldy_zeropage() {
+
+    }
+
+    public void test_ldy_zeropage_x() {
+
+    }
+
+    public void test_ldy_zeropage_x_wraparound() {
+
+    }
+
+    public void test_ldy_absolute() {
+
+    }
+
+    public void test_ldy_absolute_x() {
+
+    }
 
 
     public void printTestResults() {
