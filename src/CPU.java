@@ -17,6 +17,10 @@ public class CPU {
     private int S;
     private int P; //status register
     private int PC;
+    private boolean pageCrossed;
+
+    private byte[] prgRom;
+    private byte[] chrRom;
 
     //See: https://www.nesdev.org/wiki/Status_flags for info
     //Flags / flag bits
@@ -37,20 +41,36 @@ public class CPU {
     private int carryFlag = 0;
 
 
+    public CPU(int prgRom, int chrRom) {
+        this.prgRom = new byte[prgRom];
+        this.chrRom = new byte[chrRom];
+        reset();
+    }
+
+    public void increment_pc(int bytes) {
+        PC = (PC + bytes) & 0xFFFF;
+    }
+
+    public void reset() {
+        // Read initial program counter value from reset vector
+        int prgSize = prgRom.length;
+
+        int low = ram.read(prgRom[prgSize - 4]);
+        int hi = ram.read(prgRom[prgSize - 3]);
+        //int low = ram.read(0xFFFC);
+        //int hi = ram.read(0xFFFD);
+
+        PC = (hi << 8) | low;
+    }
+
     //Instructions
 
-    //TODO write method to parse instruction to know which mode is used
-    // Example: "LDA #$00" is immediate because of the # sign (actual value 00)
-    //          "LDA $00" means that the value of memory location $00 is loaded (NOT actual value 00)
-
-    //TODO write methods for instructions (instead of own classes)
-    // maybe only check for certain opcodes
-    // Example:
     public void executeInstruction(int opcode, int value) {
         switch (opcode) {
             case 0xA9:
                 lda_immediate(value);
                 cycles += 2;
+                increment_pc(2);
                 break;
             case 0xA5:
                 lda_zeropage(value);
@@ -78,11 +98,12 @@ public class CPU {
                 break;
             case 0xB1:
                 lda_indirect_y(value);
-                cycles += 5; //TODO if page crossed it's 6 cycles
+                cycles += (5 + (pageCrossed ? 1 : 0)); //TODO if page crossed it's 6 cycles
                 break;
             case 0xA2:
                 ldx_immediate(value);
                 cycles += 2;
+                increment_pc(2);
                 break;
             case 0xA6:
                 ldx_zeropage(value);
@@ -103,6 +124,7 @@ public class CPU {
             case 0xA0:
                 ldy_immediate(value);
                 cycles += 2;
+                increment_pc(2);
                 break;
             case 0xA4:
                 ldy_zeropage(value);
@@ -123,6 +145,7 @@ public class CPU {
             case 0x85:
                 sta_zeropage(value);
                 cycles += 3;
+                increment_pc(2);
                 break;
             case 0x95:
                 sta_zeropage_x(value);
@@ -151,6 +174,7 @@ public class CPU {
             case 0x86:
                 stx_zeropage(value);
                 cycles += 3;
+                increment_pc(2);
                 break;
             case 0x96:
                 stx_zeropage_y(value);
@@ -163,6 +187,7 @@ public class CPU {
             case 0x84:
                 sty_zeropage(value);
                 cycles += 3;
+                increment_pc(2);
                 break;
             case 0x94:
                 sty_zeropage_x(value);
@@ -171,6 +196,23 @@ public class CPU {
             case 0x8C:
                 sty_absolute(value);
                 cycles += 4;
+                break;
+            case 0x4C:
+                jmp_absolute(value);
+                cycles += 3;
+                increment_pc(3);
+                break;
+            case 0x6C:
+                jmp_indirect(value);
+                cycles += 5;
+                increment_pc(3);
+            case 0xE8:
+                inx();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            default:
+                System.out.println("opcode is either invalid or not implemented yet.");
                 break;
         }
     }
@@ -182,7 +224,7 @@ public class CPU {
         setZeroFlag(A);
         setNegativeFlag(A);
 
-        System.out.println("LDA #$" + Integer.toHexString(value));
+        //System.out.println("LDA #$" + Integer.toHexString(value));
     }
 
     private void lda_zeropage(int addr) {
@@ -192,7 +234,6 @@ public class CPU {
     }
 
     private void lda_zeropage_x(int addr) {
-        //X has value $0F --> "LDA $10, X" --> $0F is added to $10 --> Value of location $001F is loaded into A
         int _addr = addr + X;
         if (_addr > 0xFF) {
             _addr -= 0x100;
@@ -223,7 +264,6 @@ public class CPU {
     }
 
     private void lda_indirect_x(int addr) {
-        //Not sure if this logic is correct
         int _addr = addr + X;
         if (_addr > 0xFF) {
             _addr -= 0x100;
@@ -234,7 +274,6 @@ public class CPU {
     }
 
     private void lda_indirect_y(int addr) {
-        //Not sure if this logic is correct
         int _addr = addr + Y;
         A = ram.read(_addr);
         setZeroFlag(A);
@@ -248,7 +287,7 @@ public class CPU {
         setZeroFlag(X);
         setNegativeFlag(X);
 
-        System.out.println("LDX #$" + Integer.toHexString(value));
+        //System.out.println("LDX #$" + Integer.toHexString(value));
     }
 
     private void ldx_zeropage(int addr) {
@@ -287,7 +326,7 @@ public class CPU {
         setZeroFlag(Y);
         setNegativeFlag(Y);
 
-        System.out.println("LDY #$" + Integer.toHexString(value));
+        //System.out.println("LDY #$" + Integer.toHexString(value));
     }
 
     private void ldy_zeropage(int addr) {
@@ -324,7 +363,7 @@ public class CPU {
     private void sta_zeropage(int addr) {
         ram.write(addr, A);
 
-        System.out.println("STA $" + Integer.toHexString(addr));
+        //System.out.println("STA $" + Integer.toHexString(addr));
     }
 
     private void sta_zeropage_x(int addr) {
@@ -367,7 +406,7 @@ public class CPU {
     private void stx_zeropage(int addr) {
         ram.write(addr, X);
 
-        System.out.println("STX $" + Integer.toHexString(addr));
+        //System.out.println("STX $" + Integer.toHexString(addr));
     }
 
     private void stx_zeropage_y(int addr) {
@@ -387,8 +426,7 @@ public class CPU {
     private void sty_zeropage(int addr) {
         ram.write(addr, Y);
 
-        System.out.println("STY $" + Integer.toHexString(addr));
-        System.exit(0);
+        //System.out.println("STY $" + Integer.toHexString(addr));
     }
 
     private void sty_zeropage_x(int addr) {
@@ -403,6 +441,20 @@ public class CPU {
         ram.write(addr, Y);
     }
 
+    private void jmp_absolute(int addr) {
+        PC = addr;
+    }
+
+    private void jmp_indirect(int addr) {
+        PC = addr;
+    }
+
+    private void inx() {
+        X++;
+        setZeroFlag(X);
+        setNegativeFlag(X);
+    }
+
 
     // -- Status flags --
 
@@ -415,6 +467,7 @@ public class CPU {
         negativeFlag = binary.charAt(0) == '1' ? 1 : 0;
     }
 
+
     public int read_a() {
         return A;
     }
@@ -425,6 +478,14 @@ public class CPU {
 
     public int read_y() {
         return Y;
+    }
+
+    public int read_pc() {
+        return PC;
+    }
+
+    public void set_pc(int value) {
+        PC = value;
     }
 
     public long get_cycles() {

@@ -6,19 +6,20 @@ import java.nio.file.Path;
  */
 public class NesEmu {
     private static byte[] rom;
-    private static int nextByte = 0; //index of next byte to read in ROM
-    private static CPU cpu = new CPU();
+    //private static int nextByte = 0; //index of next byte to read in ROM
+    private static CPU cpu;
 
     public static void main(String[] args) {
         //TODO
         // --> Add tests
         // --> Add frontend (Java Swing)
 
-        //test_cpu();
+        test_cpu();
 
         //File romFile = Path.of("test.nes").toFile();
-        File romFile = Path.of("test2.nes").toFile();
-        parseRom(romFile);
+        //File romFile = Path.of("test2.nes").toFile();
+        //File romFile = Path.of("test3.nes").toFile();
+        //parseRom(romFile);
     }
 
     private static void test_cpu() {
@@ -42,10 +43,17 @@ public class NesEmu {
         cpuTest.test_ldx_immediate();
         cpuTest.test_ldx_zeropage();
         cpuTest.test_ldx_zeropage_y();
+        cpuTest.test_ldx_zeropage_y_wraparound();
         cpuTest.test_ldx_absolute();
         cpuTest.test_ldx_absolute_y();
 
         //LDY
+        cpuTest.test_ldy_immediate();
+        cpuTest.test_ldy_zeropage();
+        cpuTest.test_ldy_zeropage_x();
+        cpuTest.test_ldy_zeropage_x_wraparound();
+        cpuTest.test_ldy_absolute();
+        cpuTest.test_ldy_absolute_x();
 
 
         cpuTest.printTestResults();
@@ -60,24 +68,40 @@ public class NesEmu {
         //RomLoader.parseRom(rom);
 
         if (RomLoader.checkSignature(rom)) {
-            Header header = RomLoader.parseHeader(rom); //TODO do something with the header
+            Header header = RomLoader.parseHeader(rom);
 
-            nextByte = 16;
-            while ((rom[nextByte] & 0xFF) != 0x00) {
-                int opcode = rom[nextByte] & 0xFF;
+            cpu = new CPU(header.getPrgSize(), header.getChrSize());
+            int pc = cpu.read_pc();
+            while ((rom[pc] & 0xFF) != 0x00) {
+                pc = cpu.read_pc();
+                System.out.println(pc);
+                int opcode = rom[pc] & 0xFF;
 
                 switch (opcode) {
+                    case 0xE8:
+                        //These instructions are 1 byte wide
+                        cpu.executeInstruction(opcode, 0);
+                        break;
                     case 0x84:
                     case 0x85:
                     case 0x86:
                     case 0xA0:
                     case 0xA2:
                     case 0xA9:
-                        cpu.executeInstruction(opcode, rom[nextByte + 1]);
-                        nextByte += 2;
+                        //These instructions are 2 bytes wide
+                        cpu.executeInstruction(opcode, rom[pc + 1]);
+                        break;
+                    case 0x4C:
+                    case 0x6C:
+                        //These instructions are 3 bytes wide
+                        int low = rom[pc + 1];
+                        int hi = rom[pc + 2];
+                        int addr = (hi << 8) | low;
+                        cpu.executeInstruction(opcode, addr);
                         break;
                     default:
-                        System.out.println("EOF / invalid opcode / opcode not implemented");
+                        System.out.println("opcode not implemented or invalid");
+                        System.exit(69);
                 }
             }
         }
