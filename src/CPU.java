@@ -14,7 +14,8 @@ public class CPU {
     private int A;
     private int X;
     private int Y;
-    private int stack;
+    //private int stack;
+    private int stackPointer;
     private StatusRegister status; //status register
     private int PC;
     private boolean pageCrossed;
@@ -29,6 +30,9 @@ public class CPU {
         this.chrRom = new byte[chrRom];
         this.romFile = romFile;
         this.status = new StatusRegister();
+
+        //when pushing to the stack:
+        this.stackPointer = 0xFF;
         PC = 16;
         //reset(); //TODO reset() is broken
     }
@@ -256,6 +260,36 @@ public class CPU {
                 increment_pc(3);
             case 0xE8:
                 inx();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0xAA:
+                tax();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0xA8:
+                tay();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0xBA:
+                tsx();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0x8A:
+                txa();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0x98:
+                tya();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0x9A:
+                txs();
                 cycles += 2;
                 increment_pc(1);
                 break;
@@ -555,6 +589,42 @@ public class CPU {
         setNegativeFlag(X);
     }
 
+    // -- TAX, TAY, TSX, TXA, TYA, TXS
+
+    private void tax() {
+        X = A;
+        setZeroFlag(X);
+        setNegativeFlag(X);
+    }
+
+    private void tay() {
+        Y = A;
+        setZeroFlag(Y);
+        setNegativeFlag(Y);
+    }
+
+    private void tsx() {
+        X = pop();
+        setZeroFlag(X);
+        setNegativeFlag(X);
+    }
+
+    private void txa() {
+        A = X;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void tya() {
+        A = Y;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void txs() {
+        push(X);
+    }
+
 
     // -- Status flags --
 
@@ -580,6 +650,18 @@ public class CPU {
         status.setOverflowFlagSet(overflow);
     }
 
+    // -- Stack operations --
+    private void push(int value) {
+        ram.write((0x0100 + stackPointer), value);
+        stackPointer = (stackPointer - 1) & 0xFF;
+    }
+
+    private int pop() {
+        stackPointer = (stackPointer + 1) & 0xFF;
+        return ram.read((0x0100 + stackPointer));
+    }
+
+    // -- Getters and setters --
 
     public int read_a() {
         return A;

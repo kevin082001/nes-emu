@@ -83,6 +83,12 @@ public class NesEmu {
 
                 switch (opcode) {
                     case 0x78:
+                    case 0x8A:
+                    case 0x98:
+                    case 0x9A:
+                    case 0xAA:
+                    case 0xA8:
+                    case 0xBA:
                     case 0xD8:
                     case 0xE8:
                         //These instructions are 1 byte wide
