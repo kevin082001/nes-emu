@@ -14,37 +14,23 @@ public class CPU {
     private int A;
     private int X;
     private int Y;
-    private int S;
-    private int P; //status register
+    private int stack;
+    private StatusRegister status; //status register
     private int PC;
     private boolean pageCrossed;
 
     private byte[] prgRom;
     private byte[] chrRom;
 
-    //See: https://www.nesdev.org/wiki/Status_flags for info
-    //Flags / flag bits
-    private final int NEGATIVE_BIT = 7;
-    private final int OVERFLOW_BIT = 6;
-    private final int BREAK_BIT = 4;
-    private final int DECIMAL_BIT = 3;
-    private final int INTERRUPT_BIT = 2;
-    private final int ZERO_BIT = 1;
-    private final int CARRY_BIT = 0;
+    private final byte[] romFile;
 
-    private int negativeFlag = (1 << NEGATIVE_BIT);
-    private int overflowFlag = (1 << OVERFLOW_BIT);
-    private int breakFlag = (1 << BREAK_BIT);
-    private int decimalFlag = (1 << DECIMAL_BIT);
-    private int interruptFlag = (1 << INTERRUPT_BIT);
-    private int zeroFlag = (1 << ZERO_BIT);
-    private int carryFlag = 0;
-
-
-    public CPU(int prgRom, int chrRom) {
+    public CPU(int prgRom, int chrRom, byte[] romFile) {
         this.prgRom = new byte[prgRom];
         this.chrRom = new byte[chrRom];
-        reset();
+        this.romFile = romFile;
+        this.status = new StatusRegister();
+        PC = 16;
+        //reset(); //TODO reset() is broken
     }
 
     public void increment_pc(int bytes) {
@@ -55,8 +41,15 @@ public class CPU {
         // Read initial program counter value from reset vector
         int prgSize = prgRom.length;
 
-        int low = ram.read(prgRom[prgSize - 4]);
-        int hi = ram.read(prgRom[prgSize - 3]);
+        //int low = ram.read(prgRom[prgSize - 4]);
+        //int hi = ram.read(prgRom[prgSize - 3]);
+
+        System.out.println(romFile[romFile.length - 4]);
+        System.out.println(romFile[romFile.length - 3]);
+
+        int low = romFile[romFile.length - 4];
+        int hi = romFile[romFile.length - 3];
+
         //int low = ram.read(0xFFFC);
         //int hi = ram.read(0xFFFD);
 
@@ -66,7 +59,54 @@ public class CPU {
     //Instructions
 
     public void executeInstruction(int opcode, int value) {
+        //TODO cycle / clock speed management
+
         switch (opcode) {
+            case 0x69:
+                adc_immediate(value);
+                cycles += 2;
+                increment_pc(2);
+                break;
+            case 0x65:
+                adc_zeropage(value);
+                cycles += 3;
+                increment_pc(2);
+                break;
+            case 0x75:
+                adc_zeropage_x(value);
+                cycles += 4;
+                increment_pc(2);
+                break;
+            case 0x6D:
+                adc_absolute(value);
+                cycles += 4;
+                increment_pc(3);
+                break;
+            case 0x7D:
+                adc_absolute_x(value);
+                cycles += 4 + (pageCrossed ? 1 : 0);
+                increment_pc(3);
+                break;
+            case 0x79:
+                adc_absolute_y(value);
+                cycles += 4 + (pageCrossed ? 1 : 0);
+                increment_pc(3);
+                break;
+            case 0x61:
+                adc_indirect_x(value);
+                cycles += 6;
+                increment_pc(2);
+                break;
+            case 0x71:
+                adc_indirect_y(value);
+                cycles += 5 + (pageCrossed ? 1 : 0);
+                increment_pc(2);
+                break;
+            case 0xD8:
+                cld();
+                cycles += 2;
+                increment_pc(1);
+                break;
             case 0xA9:
                 lda_immediate(value);
                 cycles += 2;
@@ -75,10 +115,12 @@ public class CPU {
             case 0xA5:
                 lda_zeropage(value);
                 cycles += 3;
+                increment_pc(2);
                 break;
             case 0xB5:
                 lda_zeropage_x(value);
                 cycles += 4;
+                increment_pc(2);
                 break;
             case 0xAD:
                 lda_absolute(value);
@@ -142,6 +184,11 @@ public class CPU {
                 ldy_absolute_x(value);
                 cycles += 4; //TODO if page crossed it's 5 cycles
                 break;
+            case 0x78:
+                sei();
+                cycles += 2;
+                increment_pc(1);
+                break;
             case 0x85:
                 sta_zeropage(value);
                 cycles += 3;
@@ -154,6 +201,7 @@ public class CPU {
             case 0x8D:
                 sta_absolute(value);
                 cycles += 4;
+                increment_pc(3);
                 break;
             case 0x9D:
                 sta_absolute_x(value);
@@ -198,7 +246,7 @@ public class CPU {
                 cycles += 4;
                 break;
             case 0x4C:
-                jmp_absolute(value);
+                jmp_absolute(value); //TODO implement correctly
                 cycles += 3;
                 increment_pc(3);
                 break;
@@ -216,6 +264,46 @@ public class CPU {
                 break;
         }
     }
+
+    // -- ADC --
+
+    private void adc_immediate(int value) {
+        int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
+        A = result;
+        setCarryFlag(value);
+        setZeroFlag(value);
+        setOverflowFlag(value, result);
+        setNegativeFlag(value);
+    }
+
+    private void adc_zeropage(int value) {
+
+    }
+
+    private void adc_zeropage_x(int value) {
+
+    }
+
+    private void adc_absolute(int value) {
+
+    }
+
+    private void adc_absolute_x(int value) {
+
+    }
+
+    private void adc_absolute_y(int value) {
+
+    }
+
+    private void adc_indirect_x(int value) {
+
+    }
+
+    private void adc_indirect_y(int value) {
+
+    }
+
 
     // -- LDA --
 
@@ -358,6 +446,18 @@ public class CPU {
         setNegativeFlag(Y);
     }
 
+    // -- SEI --
+
+    private void sei() {
+        status.setInterruptFlagSet(true);
+    }
+
+    // -- CLD --
+
+    private void cld() {
+        status.setDecimalFlagSet(false);
+    }
+
     // -- STA --
 
     private void sta_zeropage(int addr) {
@@ -442,11 +542,11 @@ public class CPU {
     }
 
     private void jmp_absolute(int addr) {
-        PC = addr;
+        PC = addr; //TODO see nesdev reference for correct implementation
     }
 
     private void jmp_indirect(int addr) {
-        PC = addr;
+        PC = addr; //TODO see nesdev reference for correct implementation
     }
 
     private void inx() {
@@ -458,13 +558,26 @@ public class CPU {
 
     // -- Status flags --
 
+    private void setCarryFlag(int value) {
+        status.setCarryFlagSet(value > 0xFF);
+    }
+
     private void setZeroFlag(int value) {
-        zeroFlag = value == 0 ? 1 : 0;
+        //zeroFlag = value == 0 ? 1 : 0;
+        status.setZeroFlagSet(value == 0);
     }
 
     private void setNegativeFlag(int value) {
         String binary = String.format("%8s", Integer.toBinaryString(value)).replace(' ', '0'); //8-bit binary
-        negativeFlag = binary.charAt(0) == '1' ? 1 : 0;
+        status.setNegativeFlagSet(binary.charAt(0) == '1');
+        //negativeFlag = binary.charAt(0) == '1' ? 1 : 0;
+    }
+
+    private void setOverflowFlag(int value, int result) {
+        boolean overflow = (((A ^ value) & 0x80) == 0)
+                && (((A ^ result) & 0x80) != 0);
+
+        status.setOverflowFlagSet(overflow);
     }
 
 

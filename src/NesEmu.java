@@ -14,12 +14,14 @@ public class NesEmu {
         // --> Add tests
         // --> Add frontend (Java Swing)
 
-        test_cpu();
+        //test_cpu();
 
         //File romFile = Path.of("test.nes").toFile();
         //File romFile = Path.of("test2.nes").toFile();
         //File romFile = Path.of("test3.nes").toFile();
-        //parseRom(romFile);
+        //File romFile = Path.of("playground.nes").toFile();
+        File romFile = Path.of("smb1.nes").toFile();
+        parseRom(romFile);
     }
 
     private static void test_cpu() {
@@ -70,14 +72,18 @@ public class NesEmu {
         if (RomLoader.checkSignature(rom)) {
             Header header = RomLoader.parseHeader(rom);
 
-            cpu = new CPU(header.getPrgSize(), header.getChrSize());
+            cpu = new CPU(header.getPrgSize(), header.getChrSize(), rom);
             int pc = cpu.read_pc();
             while ((rom[pc] & 0xFF) != 0x00) {
                 pc = cpu.read_pc();
-                System.out.println(pc);
+                System.out.println();
+                System.out.println("PC: " + pc + " ($" + Integer.toHexString(pc) + ")");
+                System.out.println("Reading opcode: " + Integer.toHexString(rom[pc] & 0xFF));
                 int opcode = rom[pc] & 0xFF;
 
                 switch (opcode) {
+                    case 0x78:
+                    case 0xD8:
                     case 0xE8:
                         //These instructions are 1 byte wide
                         cpu.executeInstruction(opcode, 0);
@@ -93,6 +99,7 @@ public class NesEmu {
                         break;
                     case 0x4C:
                     case 0x6C:
+                    case 0x8D:
                         //These instructions are 3 bytes wide
                         int low = rom[pc + 1];
                         int hi = rom[pc + 2];

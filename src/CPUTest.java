@@ -11,20 +11,23 @@ public class CPUTest {
     List<String> errorMessages = new ArrayList<>();
 
     public CPUTest() {
-        cpu = new CPU(16, 8);
+        cpu = new CPU(16, 8, null);
         ram = cpu.getRam();
     }
 
     public void test_lda_immediate() {
-        // LDA #$5F
+        int pcBefore = cpu.read_pc();
         int expected = 0x5F;
         cpu.executeInstruction(0xA9, expected);
         int a = cpu.read_a();
+        int pcAfter = cpu.read_pc();
 
         assertEquals(a, expected, "lda_immediate");
+        assertEquals(pcAfter, (pcBefore + 2), "lda_immediate_programcounter");
     }
 
     public void test_lda_zeropage() {
+        int pcBefore = cpu.read_pc();
         //Pre-write memory location
         ram.write(0xF3, 0x50);
 
@@ -33,8 +36,10 @@ public class CPUTest {
         cpu.executeInstruction(0xA5, addr);
         int a = cpu.read_a();
         int expected = ram.read(addr);
+        int pcAfter = cpu.read_pc();
 
         assertEquals(a, expected, "lda_zeropage");
+        assertEquals(pcAfter, (pcBefore + 2), "lda_zeropage_programcounter");
     }
 
     public void test_lda_zeropage_x() {
@@ -45,12 +50,15 @@ public class CPUTest {
         cpu.executeInstruction(0xA2, 0x13);
 
         //LDA $00B5,X ( E0 + 13 = F3 )
+        int pcBefore = cpu.read_pc();
         cpu.executeInstruction(0xB5, 0xE0);
 
         int a = cpu.read_a();
         int expected = ram.read(0xF3);
+        int pcAfter = cpu.read_pc();
 
         assertEquals(a, expected, "lda_zeropage_x");
+        assertEquals(pcAfter, (pcBefore + 2), "lda_zeropage_x_programcounter");
     }
 
     public void test_lda_zeropage_x_wraparound() {
