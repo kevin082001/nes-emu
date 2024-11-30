@@ -15,7 +15,7 @@ public class CPU {
     private int X;
     private int Y;
     //private int stack;
-    private int stackPointer;
+    private int stackPointer; //stack is from $0100 to $01FF
     private StatusRegister status; //status register
     private int PC;
     private boolean pageCrossed;
@@ -105,6 +105,101 @@ public class CPU {
                 adc_indirect_y(value);
                 cycles += 5 + (pageCrossed ? 1 : 0);
                 increment_pc(2);
+                break;
+            case 0x29:
+                and_immediate(value);
+                cycles += 2;
+                increment_pc(2);
+                break;
+            case 0x25:
+                and_zeropage(value);
+                cycles += 3;
+                increment_pc(2);
+                break;
+            case 0x35:
+                and_zeropage_x(value);
+                cycles += 4;
+                increment_pc(2);
+                break;
+            case 0x2D:
+                and_absolute(value);
+                cycles += 4;
+                increment_pc(3);
+                break;
+            case 0x3D:
+                and_absolute_x(value);
+                cycles += 4 + (pageCrossed ? 1 : 0);
+                increment_pc(3);
+                break;
+            case 0x39:
+                and_absolute_y(value);
+                cycles += 4 + (pageCrossed ? 1 : 0);
+                increment_pc(3);
+                break;
+            case 0x21:
+                and_indirect_x(value);
+                cycles += 6;
+                increment_pc(2);
+                break;
+            case 0x31:
+                and_indirect_y(value);
+                cycles += 5 + (pageCrossed ? 1 : 0);
+                increment_pc(2);
+                break;
+            case 0x0A:
+                asl_accumulator();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0x06:
+                asl_zeropage(value);
+                cycles += 5;
+                increment_pc(2);
+                break;
+            case 0x16:
+                asl_zeropage_x(value);
+                cycles += 6;
+                increment_pc(2);
+                break;
+            case 0x0E:
+                asl_absolute(value);
+                cycles += 6;
+                increment_pc(3);
+                break;
+            case 0x1E:
+                asl_absolute_x(value);
+                cycles += 7;
+                increment_pc(3);
+                break;
+            case 0x90:
+                bcc(value);
+                //TODO cycles: 2 (3 if branch taken, 4 if page crossed)
+                break;
+            case 0xB0:
+                bcs(value);
+                //TODO cycles: 2 (3 if branch taken, 4 if page crossed)
+                break;
+            case 0xF0:
+                beq(value);
+                break;
+            case 0x24:
+                bit_zeropage(value);
+                cycles += 3;
+                increment_pc(2);
+                break;
+            case 0x2C:
+                bit_absolute(value);
+                cycles += 4;
+                increment_pc(3);
+                break;
+            case 0x30:
+                bmi(value);
+                break;
+            case 0xD0:
+                bne(value);
+                break;
+            case 0x10:
+                bpl(value);
                 break;
             case 0xD8:
                 cld();
@@ -310,34 +405,240 @@ public class CPU {
         setNegativeFlag(value);
     }
 
-    private void adc_zeropage(int value) {
-
+    private void adc_zeropage(int addr) {
+        int value = ram.read(addr);
+        int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
+        A = result;
+        setCarryFlag(value);
+        setZeroFlag(value);
+        setOverflowFlag(value, result);
+        setNegativeFlag(value);
     }
 
-    private void adc_zeropage_x(int value) {
-
+    private void adc_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
+        A = result;
+        setCarryFlag(value);
+        setZeroFlag(value);
+        setOverflowFlag(value, result);
+        setNegativeFlag(value);
     }
 
-    private void adc_absolute(int value) {
-
+    private void adc_absolute(int addr) {
+        int value = ram.read(addr);
+        int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
+        A = result;
+        setCarryFlag(value);
+        setZeroFlag(value);
+        setOverflowFlag(value, result);
+        setNegativeFlag(value);
     }
 
-    private void adc_absolute_x(int value) {
-
+    private void adc_absolute_x(int addr) {
+        int _addr = addr + X;
+        int value = ram.read(_addr);
+        int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
+        A = result;
+        setCarryFlag(value);
+        setZeroFlag(value);
+        setOverflowFlag(value, result);
+        setNegativeFlag(value);
     }
 
-    private void adc_absolute_y(int value) {
-
+    private void adc_absolute_y(int addr) {
+        int _addr = addr + Y;
+        int value = ram.read(_addr);
+        int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
+        A = result;
+        setCarryFlag(value);
+        setZeroFlag(value);
+        setOverflowFlag(value, result);
+        setNegativeFlag(value);
     }
 
-    private void adc_indirect_x(int value) {
-
+    private void adc_indirect_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
+        A = result;
+        setCarryFlag(value);
+        setZeroFlag(value);
+        setOverflowFlag(value, result);
+        setNegativeFlag(value);
     }
 
-    private void adc_indirect_y(int value) {
-
+    private void adc_indirect_y(int addr) {
+        int _addr = addr + Y;
+        int value = ram.read(_addr);
+        int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
+        A = result;
+        setCarryFlag(value);
+        setZeroFlag(value);
+        setOverflowFlag(value, result);
+        setNegativeFlag(value);
     }
 
+    // -- AND --
+
+    private void and_immediate(int value) {
+        A &= value;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void and_zeropage(int addr) {
+        int value = ram.read(addr);
+        A &= value;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void and_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        A &= value;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void and_absolute(int addr) {
+        int value = ram.read(addr);
+        A &= value;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void and_absolute_x(int addr) {
+        int _addr = addr + X;
+        int value = ram.read(_addr);
+        A &= value;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void and_absolute_y(int addr) {
+        int _addr = addr + Y;
+        int value = ram.read(_addr);
+        A &= value;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void and_indirect_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        A &= value;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void and_indirect_y(int addr) {
+        int _addr = addr + Y;
+        int value = ram.read(_addr);
+        A &= value;
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    // -- ASL --
+
+
+    // -- BCC --
+
+    private void bcc(int addr) {
+        int value = ram.read(addr);
+        PC += 2;
+        cycles += 2;
+        if (!status.isCarryFlagSet()) {
+            cycles++;
+            //branch(addr);
+            branch(value);
+        }
+    }
+
+    // -- BCS --
+
+    private void bcs(int addr) {
+        int value = ram.read(addr);
+        increment_pc(2);
+        cycles += 2;
+        if (status.isCarryFlagSet()) {
+            cycles++;
+            //branch(addr);
+            branch(value);
+        }
+    }
+
+    // -- BEQ --
+
+    private void beq(int addr) {
+        int value = ram.read(addr);
+        increment_pc(2);
+        cycles += 2;
+        if (status.isZeroFlagSet()) {
+            cycles++;
+            branch(value);
+        }
+    }
+
+    // -- BIT --
+    private void bit_zeropage(int addr) {
+        //TODO implement
+    }
+
+    private void bit_absolute(int addr) {
+        //TODO implement
+    }
+
+    // -- BMI --
+
+    private void bmi(int addr) {
+        int value = ram.read(addr);
+        increment_pc(2);
+        cycles += 2;
+        if (status.isNegativeFlagSet()) {
+            cycles++;
+            branch(value);
+        }
+    }
+
+    // -- BNE --
+
+    private void bne(int addr) {
+        int value = ram.read(addr);
+        increment_pc(2);
+        cycles += 2;
+        if (!status.isZeroFlagSet()) {
+            cycles++;
+            branch(value);
+        }
+    }
+
+    // -- BPL --
+
+    private void bpl(int addr) {
+        int value = ram.read(addr);
+        increment_pc(2);
+        cycles += 2;
+        if (!status.isNegativeFlagSet()) {
+            cycles++;
+            branch(value);
+        }
+    }
 
     // -- LDA --
 
@@ -575,6 +876,8 @@ public class CPU {
         ram.write(addr, Y);
     }
 
+    // -- JMP --
+
     private void jmp_absolute(int addr) {
         PC = addr; //TODO see nesdev reference for correct implementation
     }
@@ -582,6 +885,8 @@ public class CPU {
     private void jmp_indirect(int addr) {
         PC = addr; //TODO see nesdev reference for correct implementation
     }
+
+    // -- INX --
 
     private void inx() {
         X++;
@@ -648,6 +953,13 @@ public class CPU {
                 && (((A ^ result) & 0x80) != 0);
 
         status.setOverflowFlagSet(overflow);
+    }
+
+    // -- Branch --
+
+    private void branch(int value) {
+        //In halfnes project, it's implemented that way. I don't know if this fits this project
+        PC = ((byte) ram.read(PC++)) + PC;
     }
 
     // -- Stack operations --

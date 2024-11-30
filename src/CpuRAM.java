@@ -9,11 +9,17 @@ public class CpuRAM {
     private int[] internal_mirror2 = new int[2048]; // $1000 - $17FF
     private int[] internal_mirror3 = new int[2048]; // $1800 - $1FFF
 
-    private PPU ppu; // $2000 - $2007 , $2008 - §3FFF (mirrors, repeated every 8 bytes)
+    private PPU ppu; // $2000 - $2007 , $2008 - $3FFF (mirrors, repeated every 8 bytes)
     private APU apu; // $4000 - $4017 , $4018 - $401F
 
     //Cartridge RAM / ROM and mapper registers
     private int[] cartridgeSpace = new int[49120]; // $4020 - $FFFF
+
+    public CpuRAM() {
+        this.ppu = new PPU();
+        this.apu = new APU();
+        //TODO add mapper support
+    }
 
 
     // Write / Read memory
@@ -53,5 +59,13 @@ public class CpuRAM {
         }
 
         return 0;
+    }
+
+    public PPU getPPU() {
+        return ppu;
+    }
+
+    public APU getAPU() {
+        return apu;
     }
 }
