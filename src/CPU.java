@@ -302,6 +302,36 @@ public class CPU {
                 cycles += 4;
                 increment_pc(3);
                 break;
+            case 0xC6:
+                dec_zeropage(value);
+                cycles += 5;
+                increment_pc(2);
+                break;
+            case 0xD6:
+                dec_zeropage_x(value);
+                cycles += 6;
+                increment_pc(2);
+                break;
+            case 0xCE:
+                dec_absolute(value);
+                cycles += 6;
+                increment_pc(3);
+                break;
+            case 0xDE:
+                dec_absolute_x(value);
+                cycles += 7;
+                increment_pc(3);
+                break;
+            case 0xCA:
+                dex();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0x88:
+                dey();
+                cycles += 2;
+                increment_pc(1);
+                break;
             case 0xA9:
                 lda_immediate(value);
                 cycles += 2;
@@ -991,6 +1021,71 @@ public class CPU {
         int bit7 = (int) Integer.toBinaryString(result).charAt(0);
         status.setCarryFlagSet(Y >= value);
         status.setZeroFlagSet(Y == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    // -- DEC --
+
+    private void dec_zeropage(int addr) {
+        int value = ram.read(addr);
+        int result = value - 1;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        ram.write(addr, result);
+
+        setZeroFlag(result);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void dec_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        int result = value - 1;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        ram.write(addr, result);
+
+        setZeroFlag(result);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void dec_absolute(int addr) {
+        int value = ram.read(addr);
+        int result = value - 1;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        ram.write(addr, result);
+
+        setZeroFlag(result);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void dec_absolute_x(int addr) {
+        int _addr = addr + X;
+        int value = ram.read(_addr);
+        int result = value - 1;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        ram.write(addr, result);
+
+        setZeroFlag(result);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    // -- DEX, DEY --
+
+    private void dex() {
+        X--;
+        int bit7 = (int) Integer.toBinaryString(X).charAt(0);
+
+        status.setZeroFlagSet(X == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void dey() {
+        Y--;
+        int bit7 = (int) Integer.toBinaryString(Y).charAt(0);
+
+        status.setZeroFlagSet(Y == 0);
         status.setNegativeFlagSet(bit7 == 1);
     }
 
