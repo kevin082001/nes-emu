@@ -556,6 +556,62 @@ public class CPU {
 
     // -- ASL --
 
+    private void asl_accumulator() {
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        A <<= 1;
+        status.setCarryFlagSet(bit7 == 1);
+        setZeroFlag(A);
+        setNegativeFlag(A);
+    }
+
+    private void asl_zeropage(int addr) {
+        int value = ram.read(addr);
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        value <<= 1;
+        ram.write(addr, value);
+
+        status.setCarryFlagSet(bit7 == 1);
+        setZeroFlag(value);
+        setNegativeFlag(value);
+    }
+
+    private void asl_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        value <<= 1;
+        ram.write(_addr, value);
+
+        status.setCarryFlagSet(bit7 == 1);
+        setZeroFlag(value);
+        setNegativeFlag(value);
+    }
+
+    private void asl_absolute(int addr) {
+        int value = ram.read(addr);
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        value <<= 1;
+        ram.write(addr, value);
+
+        status.setCarryFlagSet(bit7 == 1);
+        setZeroFlag(value);
+        setNegativeFlag(value);
+    }
+
+    private void asl_absolute_x(int addr) {
+        int _addr = addr + X;
+        int value = ram.read(_addr);
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        value <<= 1;
+        ram.write(_addr, value);
+
+        status.setCarryFlagSet(bit7 == 1);
+        setZeroFlag(value);
+        setNegativeFlag(value);
+    }
 
     // -- BCC --
 
