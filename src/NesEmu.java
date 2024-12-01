@@ -119,14 +119,21 @@ public class NesEmu {
                     case 0x70:
                     case 0x71:
                     case 0x75:
+                    case 0x81:
                     case 0x84:
                     case 0x85:
                     case 0x86:
                     case 0x90:
+                    case 0x91:
+                    case 0x94:
+                    case 0x95:
+                    case 0x96:
                     case 0xA0:
                     case 0xA2:
+                    case 0xA4:
                     case 0xA9:
                     case 0xB0:
+                    case 0xB4:
                     case 0xC0:
                     case 0xC1:
                     case 0xC4:
@@ -154,7 +161,16 @@ public class NesEmu {
                     case 0x6D:
                     case 0x79:
                     case 0x7D:
+                    case 0x8C:
                     case 0x8D:
+                    case 0x8E:
+                    case 0x99:
+                    case 0x9D:
+                    case 0xAC:
+                    case 0xAD:
+                    case 0xAE:
+                    case 0xBC:
+                    case 0xBE:
                     case 0xCC:
                     case 0xCD:
                     case 0xCE:
