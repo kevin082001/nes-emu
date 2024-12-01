@@ -82,30 +82,86 @@ public class NesEmu {
                 int opcode = rom[pc] & 0xFF;
 
                 switch (opcode) {
+                    case 0x0A:
+                    case 0x58:
                     case 0x78:
+                    case 0x88:
                     case 0x8A:
                     case 0x98:
                     case 0x9A:
                     case 0xAA:
                     case 0xA8:
+                    case 0xB8:
                     case 0xBA:
+                    case 0xC8:
+                    case 0xCA:
                     case 0xD8:
                     case 0xE8:
                         //These instructions are 1 byte wide
                         cpu.executeInstruction(opcode, 0);
                         break;
+                    case 0x00:
+                    case 0x06:
+                    case 0x10:
+                    case 0x16:
+                    case 0x18:
+                    case 0x21:
+                    case 0x24:
+                    case 0x25:
+                    case 0x29:
+                    case 0x30:
+                    case 0x31:
+                    case 0x35:
+                    case 0x50:
+                    case 0x61:
+                    case 0x65:
+                    case 0x69:
+                    case 0x70:
+                    case 0x71:
+                    case 0x75:
                     case 0x84:
                     case 0x85:
                     case 0x86:
+                    case 0x90:
                     case 0xA0:
                     case 0xA2:
                     case 0xA9:
+                    case 0xB0:
+                    case 0xC0:
+                    case 0xC1:
+                    case 0xC4:
+                    case 0xC5:
+                    case 0xC6:
+                    case 0xC9:
+                    case 0xD0:
+                    case 0xD1:
+                    case 0xD5:
+                    case 0xD6:
+                    case 0xE0:
+                    case 0xE4:
+                    case 0xF0:
                         //These instructions are 2 bytes wide
                         cpu.executeInstruction(opcode, rom[pc + 1]);
                         break;
+                    case 0x0E:
+                    case 0x1E:
+                    case 0x2C:
+                    case 0x2D:
+                    case 0x39:
+                    case 0x3D:
                     case 0x4C:
                     case 0x6C:
+                    case 0x6D:
+                    case 0x79:
+                    case 0x7D:
                     case 0x8D:
+                    case 0xCC:
+                    case 0xCD:
+                    case 0xCE:
+                    case 0xD9:
+                    case 0xDD:
+                    case 0xDE:
+                    case 0xEC:
                         //These instructions are 3 bytes wide
                         int low = rom[pc + 1];
                         int hi = rom[pc + 2];
