@@ -232,6 +232,76 @@ public class CPU {
                 cycles += 2;
                 increment_pc(1);
                 break;
+            case 0xC9:
+                cmp_immediate(value);
+                cycles += 2;
+                increment_pc(2);
+                break;
+            case 0xC5:
+                cmp_zeropage(value);
+                cycles += 3;
+                increment_pc(2);
+                break;
+            case 0xD5:
+                cmp_zeropage_x(value);
+                cycles += 4;
+                increment_pc(2);
+                break;
+            case 0xCD:
+                cmp_absolute(value);
+                cycles += 4;
+                increment_pc(3);
+                break;
+            case 0xDD:
+                cmp_absolute_x(value);
+                cycles += 4; //TODO if page crossed it's 5 cycles
+                increment_pc(3);
+                break;
+            case 0xD9:
+                cmp_absolute_y(value);
+                cycles += 4; //TODO if page crossed it's 5 cycles
+                increment_pc(3);
+                break;
+            case 0xC1:
+                cmp_indirect_x(value);
+                cycles += 6;
+                increment_pc(2);
+                break;
+            case 0xD1:
+                cmp_indirect_y(value);
+                cycles += 5; //TODO if page crossed it's 6 cycles
+                increment_pc(2);
+                break;
+            case 0xE0:
+                cpx_immediate(value);
+                cycles += 2;
+                increment_pc(2);
+                break;
+            case 0xE4:
+                cpx_zeropage(value);
+                cycles += 3;
+                increment_pc(2);
+                break;
+            case 0xEC:
+                cpx_absolute(value);
+                cycles += 4;
+                increment_pc(3);
+                break;
+            case 0xC0:
+                cpy_immediate(value);
+                cycles += 2;
+                increment_pc(2);
+                break;
+            case 0xC4:
+                cpy_zeropage(value);
+                cycles += 3;
+                increment_pc(2);
+                break;
+            case 0xCC:
+                cpy_absolute(value);
+                cycles += 4;
+                increment_pc(3);
+                break;
             case 0xA9:
                 lda_immediate(value);
                 cycles += 2;
@@ -782,6 +852,146 @@ public class CPU {
 
     private void clv() {
         status.setOverflowFlagSet(false);
+    }
+
+    // -- CMP --
+
+    private void cmp_immediate(int value) {
+        int result = A - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(A >= value);
+        status.setZeroFlagSet(A == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cmp_zeropage(int addr) {
+        int value = ram.read(addr);
+        int result = A - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(A >= value);
+        status.setZeroFlagSet(A == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cmp_zeropage_x(int addr) {
+        int _addr = addr + Y;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        int result = A - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(A >= value);
+        status.setZeroFlagSet(A == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cmp_absolute(int addr) {
+        int value = ram.read(addr);
+        int result = A - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(A >= value);
+        status.setZeroFlagSet(A == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cmp_absolute_x(int addr) {
+        int _addr = addr + X;
+        int value = ram.read(_addr);
+        int result = A - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(A >= value);
+        status.setZeroFlagSet(A == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cmp_absolute_y(int addr) {
+        int _addr = addr + Y;
+        int value = ram.read(_addr);
+        int result = A - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(A >= value);
+        status.setZeroFlagSet(A == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cmp_indirect_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        int result = A - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(A >= value);
+        status.setZeroFlagSet(A == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cmp_indirect_y(int addr) {
+        int _addr = addr + Y;
+        int value = ram.read(_addr);
+        int result = A - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(A >= value);
+        status.setZeroFlagSet(A == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    // -- CPX --
+
+    private void cpx_immediate(int value) {
+        int result = X - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(X >= value);
+        status.setZeroFlagSet(X == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cpx_zeropage(int addr) {
+        int value = ram.read(addr);
+        int result = X - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(X >= value);
+        status.setZeroFlagSet(X == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cpx_absolute(int addr) {
+        int value = ram.read(addr);
+        int result = X - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(X >= value);
+        status.setZeroFlagSet(X == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    // -- CPY --
+
+    private void cpy_immediate(int value) {
+        int result = Y - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(Y >= value);
+        status.setZeroFlagSet(Y == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cpy_zeropage(int addr) {
+        int value = ram.read(addr);
+        int result = Y - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(Y >= value);
+        status.setZeroFlagSet(Y == value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void cpy_absolute(int addr) {
+        int value = ram.read(addr);
+        int result = Y - value;
+        int bit7 = (int) Integer.toBinaryString(result).charAt(0);
+        status.setCarryFlagSet(Y >= value);
+        status.setZeroFlagSet(Y == value);
+        status.setNegativeFlagSet(bit7 == 1);
     }
 
     // -- LDA --
