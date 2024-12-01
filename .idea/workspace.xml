@@ -111,7 +111,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/CPU.java</url>
-          <line>700</line>
+          <line>788</line>
           <properties class="CPU" method="lda_immediate">
             <option name="EMULATED" value="true" />
             <option name="WATCH_EXIT" value="false" />

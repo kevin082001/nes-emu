@@ -201,8 +201,34 @@ public class CPU {
             case 0x10:
                 bpl(value);
                 break;
+            case 0x00:
+                brk();
+                cycles += 7;
+                increment_pc(2);
+                break;
+            case 0x50:
+                bvc(value);
+                break;
+            case 0x70:
+                bvs(value);
+                break;
+            case 0x18:
+                clc();
+                cycles += 2;
+                increment_pc(2);
+                break;
             case 0xD8:
                 cld();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0x58:
+                cli();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0xB8:
+                clv();
                 cycles += 2;
                 increment_pc(1);
                 break;
@@ -653,11 +679,25 @@ public class CPU {
 
     // -- BIT --
     private void bit_zeropage(int addr) {
-        //TODO implement
+        int value = ram.read(addr);
+        int result = A & value;
+        //String binary = Integer.toBinaryString(result);
+        String binary = Integer.toBinaryString(value);
+
+        setZeroFlag(result);
+        status.setOverflowFlagSet((int) binary.charAt(1) == 1);
+        status.setNegativeFlagSet((int) binary.charAt(0) == 1);
     }
 
     private void bit_absolute(int addr) {
-        //TODO implement
+        int value = ram.read(addr);
+        int result = A & value;
+        //String binary = Integer.toBinaryString(result);
+        String binary = Integer.toBinaryString(value);
+
+        setZeroFlag(result);
+        status.setOverflowFlagSet((int) binary.charAt(1) == 1);
+        status.setNegativeFlagSet((int) binary.charAt(0) == 1);
     }
 
     // -- BMI --
@@ -694,6 +734,54 @@ public class CPU {
             cycles++;
             branch(value);
         }
+    }
+
+    // -- BRK --
+
+    private void brk() {
+        //TODO implement
+    }
+
+    // -- BVC --
+
+    private void bvc(int addr) {
+        int value = ram.read(addr);
+        increment_pc(2);
+        cycles += 2;
+        if (!status.isOverflowFlagSet()) {
+            cycles++;
+            branch(value);
+        }
+    }
+
+    // -- BVS --
+
+    private void bvs(int addr) {
+        int value = ram.read(addr);
+        increment_pc(2);
+        cycles += 2;
+        if (status.isOverflowFlagSet()) {
+            cycles++;
+            branch(value);
+        }
+    }
+
+    // -- Clear flags (CLC, CLD, CLI, CLV) --
+
+    private void clc() {
+        status.setCarryFlagSet(false);
+    }
+
+    private void cld() {
+        status.setDecimalFlagSet(false);
+    }
+
+    private void cli() {
+        status.setInterruptFlagSet(false);
+    }
+
+    private void clv() {
+        status.setOverflowFlagSet(false);
     }
 
     // -- LDA --
@@ -841,12 +929,6 @@ public class CPU {
 
     private void sei() {
         status.setInterruptFlagSet(true);
-    }
-
-    // -- CLD --
-
-    private void cld() {
-        status.setDecimalFlagSet(false);
     }
 
     // -- STA --
