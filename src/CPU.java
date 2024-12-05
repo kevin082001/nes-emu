@@ -14,7 +14,7 @@ public class CPU {
     private int A;
     private int X;
     private int Y;
-    //private int stack;
+    //TODO make Stack class and move push/pop methods
     private int stackPointer; //stack is from $0100 to $01FF
     private StatusRegister status; //status register
     private int PC;
@@ -332,6 +332,91 @@ public class CPU {
                 cycles += 2;
                 increment_pc(1);
                 break;
+            case 0x49:
+                eor_immediate(value);
+                cycles += 2;
+                increment_pc(2);
+                break;
+            case 0x45:
+                eor_zeropage(value);
+                cycles += 3;
+                increment_pc(2);
+                break;
+            case 0x55:
+                eor_zeropage_x(value);
+                cycles += 4;
+                increment_pc(2);
+                break;
+            case 0x4D:
+                eor_absolute(value);
+                cycles += 4;
+                increment_pc(3);
+                break;
+            case 0x5D:
+                eor_absolute_x(value);
+                cycles += 4 + (pageCrossed ? 1 : 0);
+                increment_pc(3);
+                break;
+            case 0x59:
+                eor_absolute_y(value);
+                cycles += 4 + (pageCrossed ? 1 : 0);
+                increment_pc(3);
+                break;
+            case 0x41:
+                eor_indirect_x(value);
+                cycles += 6;
+                increment_pc(2);
+                break;
+            case 0x51:
+                eor_indirect_y(value);
+                cycles += 5 + (pageCrossed ? 1 : 0);
+                increment_pc(2);
+                break;
+            case 0xE6:
+                inc_zeropage(value);
+                cycles += 5;
+                increment_pc(2);
+                break;
+            case 0xF6:
+                inc_zeropage_x(value);
+                cycles += 6;
+                increment_pc(2);
+                break;
+            case 0xEE:
+                inc_absolute(value);
+                cycles += 6;
+                increment_pc(3);
+                break;
+            case 0xFE:
+                inc_absolute_x(value);
+                cycles += 7;
+                increment_pc(3);
+                break;
+            case 0xE8:
+                inx();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0xC8:
+                iny();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0x4C:
+                jmp_absolute(value); //TODO implement correctly
+                cycles += 3;
+                increment_pc(3);
+                break;
+            case 0x6C:
+                jmp_indirect(value);
+                cycles += 5;
+                increment_pc(3);
+                break;
+            case 0x20:
+                jsr(value);
+                cycles += 6;
+                //increment_pc(3);
+                break;
             case 0xA9:
                 lda_immediate(value);
                 cycles += 2;
@@ -491,20 +576,6 @@ public class CPU {
                 sty_absolute(value);
                 cycles += 4;
                 increment_pc(3);
-                break;
-            case 0x4C:
-                jmp_absolute(value); //TODO implement correctly
-                cycles += 3;
-                increment_pc(3);
-                break;
-            case 0x6C:
-                jmp_indirect(value);
-                cycles += 5;
-                increment_pc(3);
-            case 0xE8:
-                inx();
-                cycles += 2;
-                increment_pc(1);
                 break;
             case 0xAA:
                 tax();
@@ -1111,6 +1182,160 @@ public class CPU {
         status.setNegativeFlagSet(bit7 == 1);
     }
 
+    // -- EOR --
+
+    private void eor_immediate(int value) {
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        A ^= value;
+        status.setZeroFlagSet(A == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void eor_zeropage(int addr) {
+        int value = ram.read(addr);
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        A ^= value;
+        status.setZeroFlagSet(A == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void eor_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        A ^= value;
+        status.setZeroFlagSet(A == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void eor_absolute(int addr) {
+        int value = ram.read(addr);
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        A ^= value;
+        status.setZeroFlagSet(A == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void eor_absolute_x(int addr) {
+        int _addr = addr + X;
+        int value = ram.read(_addr);
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        A ^= value;
+        status.setZeroFlagSet(A == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void eor_absolute_y(int addr) {
+        int _addr = addr + Y;
+        int value = ram.read(_addr);
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        A ^= value;
+        status.setZeroFlagSet(A == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void eor_indirect_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        A ^= value;
+        status.setZeroFlagSet(A == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void eor_indirect_y(int addr) {
+        int _addr = addr + Y;
+        int value = ram.read(_addr);
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        A ^= value;
+        status.setZeroFlagSet(A == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    // -- INC --
+
+    private void inc_zeropage(int addr) {
+        int value = ram.read(addr);
+        value++;
+        ram.write(addr, value);
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        status.setZeroFlagSet(value == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void inc_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        value++;
+        ram.write(_addr, value);
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        status.setZeroFlagSet(value == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void inc_absolute(int addr) {
+        int value = ram.read(addr);
+        value++;
+        ram.write(addr, value);
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        status.setZeroFlagSet(value == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void inc_absolute_x(int addr) {
+        int _addr = addr + X;
+        int value = ram.read(_addr);
+        value++;
+        ram.write(_addr, value);
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        status.setZeroFlagSet(value == 0);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    // -- INX --
+
+    private void inx() {
+        X++;
+        setZeroFlag(X);
+        setNegativeFlag(X);
+    }
+
+    // -- INY --
+
+    private void iny() {
+        Y++;
+        setZeroFlag(Y);
+        setNegativeFlag(Y);
+    }
+
+    // -- JMP --
+
+    private void jmp_absolute(int addr) {
+        PC = addr; //TODO see nesdev reference for correct implementation
+    }
+
+    private void jmp_indirect(int addr) {
+        PC = addr; //TODO see nesdev reference for correct implementation
+    }
+
+    // -- JSR --
+
+    private void jsr(int addr) {
+        int value = ram.read(addr);
+
+        push(PC + 2);
+        PC = value;
+    }
+
     // -- LDA --
 
     private void lda_immediate(int value) {
@@ -1339,24 +1564,6 @@ public class CPU {
 
     private void sty_absolute(int addr) {
         ram.write(addr, Y);
-    }
-
-    // -- JMP --
-
-    private void jmp_absolute(int addr) {
-        PC = addr; //TODO see nesdev reference for correct implementation
-    }
-
-    private void jmp_indirect(int addr) {
-        PC = addr; //TODO see nesdev reference for correct implementation
-    }
-
-    // -- INX --
-
-    private void inx() {
-        X++;
-        setZeroFlag(X);
-        setNegativeFlag(X);
     }
 
     // -- TAX, TAY, TSX, TXA, TYA, TXS
