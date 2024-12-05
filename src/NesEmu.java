@@ -82,102 +82,22 @@ public class NesEmu {
                 int opcode = rom[pc] & 0xFF;
 
                 switch (opcode) {
-                    case 0x0A:
-                    case 0x58:
-                    case 0x78:
-                    case 0x88:
-                    case 0x8A:
-                    case 0x98:
-                    case 0x9A:
-                    case 0xAA:
-                    case 0xA8:
-                    case 0xB8:
-                    case 0xBA:
-                    case 0xC8:
-                    case 0xCA:
-                    case 0xD8:
-                    case 0xE8:
+                    case 0x0A, 0x58, 0x78, 0x88, 0x98, 0x9A, 0xAA, 0xA8, 0xB8, 0xBA,
+                         0xC8, 0xCA, 0xD8, 0xE8:
                         //These instructions are 1 byte wide
                         cpu.executeInstruction(opcode, 0);
                         break;
-                    case 0x00:
-                    case 0x06:
-                    case 0x10:
-                    case 0x16:
-                    case 0x18:
-                    case 0x21:
-                    case 0x24:
-                    case 0x25:
-                    case 0x29:
-                    case 0x30:
-                    case 0x31:
-                    case 0x35:
-                    case 0x50:
-                    case 0x61:
-                    case 0x65:
-                    case 0x69:
-                    case 0x70:
-                    case 0x71:
-                    case 0x75:
-                    case 0x81:
-                    case 0x84:
-                    case 0x85:
-                    case 0x86:
-                    case 0x90:
-                    case 0x91:
-                    case 0x94:
-                    case 0x95:
-                    case 0x96:
-                    case 0xA0:
-                    case 0xA2:
-                    case 0xA4:
-                    case 0xA9:
-                    case 0xB0:
-                    case 0xB4:
-                    case 0xC0:
-                    case 0xC1:
-                    case 0xC4:
-                    case 0xC5:
-                    case 0xC6:
-                    case 0xC9:
-                    case 0xD0:
-                    case 0xD1:
-                    case 0xD5:
-                    case 0xD6:
-                    case 0xE0:
-                    case 0xE4:
-                    case 0xF0:
+                    case 0x00, 0x06, 0x10, 0x16, 0x18, 0x21, 0x24, 0x25, 0x29, 0x30,
+                         0x31, 0x35, 0x50, 0x61, 0x65, 0x69 ,0x70, 0x71, 0x75, 0x81,
+                         0x84, 0x85, 0x86, 0x90, 0x91, 0x94, 0x95, 0x96, 0xA0, 0xA2,
+                         0xA4, 0xA9, 0xB0, 0xB4, 0xC0, 0xC1, 0xC4, 0xC5, 0xC6, 0xC9,
+                         0xD0, 0xD1, 0xD5, 0xD6, 0xE0, 0xE4, 0xF0:
                         //These instructions are 2 bytes wide
                         cpu.executeInstruction(opcode, rom[pc + 1]);
                         break;
-                    case 0x0E:
-                    case 0x1E:
-                    case 0x2C:
-                    case 0x2D:
-                    case 0x39:
-                    case 0x3D:
-                    case 0x4C:
-                    case 0x6C:
-                    case 0x6D:
-                    case 0x79:
-                    case 0x7D:
-                    case 0x8C:
-                    case 0x8D:
-                    case 0x8E:
-                    case 0x99:
-                    case 0x9D:
-                    case 0xAC:
-                    case 0xAD:
-                    case 0xAE:
-                    case 0xBC:
-                    case 0xBE:
-                    case 0xCC:
-                    case 0xCD:
-                    case 0xCE:
-                    case 0xD9:
-                    case 0xDD:
-                    case 0xDE:
-                    case 0xEC:
+                    case 0x0E, 0x1E, 0x2C, 0x2D, 0x39, 0x3D, 0x4C, 0x6C, 0x6D, 0x79,
+                         0x7D, 0x8C, 0x8D, 0x8E, 0x99, 0x9D, 0xAC, 0xAD, 0xAE, 0xBC,
+                         0xBE, 0xCC, 0xCD, 0xCE, 0xD9, 0xDD, 0xDE, 0xEC:
                         //These instructions are 3 bytes wide
                         int low = rom[pc + 1];
                         int hi = rom[pc + 2];
