@@ -64,6 +64,7 @@ public class CPU {
 
     public void executeInstruction(int opcode, int value) {
         //TODO cycle / clock speed management
+        //TODO refactor/shorten switch-case, not conform to DRY right now
 
         switch (opcode) {
             case 0x69:
