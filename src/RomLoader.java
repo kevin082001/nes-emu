@@ -2,6 +2,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+/*
+    Created 2024-11-22
+ */
 public class RomLoader {
     private static byte[] rom;
     private static int nextByte = 0; //index in the byte[]
