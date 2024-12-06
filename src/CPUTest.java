@@ -16,27 +16,27 @@ public class CPUTest {
     }
 
     public void test_lda_immediate() {
-        int pcBefore = cpu.read_pc();
+        int pcBefore = cpu.getPC();
         int expected = 0x5F;
         cpu.executeInstruction(0xA9, expected);
-        int a = cpu.read_a();
-        int pcAfter = cpu.read_pc();
+        int a = cpu.getA();
+        int pcAfter = cpu.getPC();
 
         assertEquals(a, expected, "lda_immediate");
         assertEquals(pcAfter, (pcBefore + 2), "lda_immediate_programcounter");
     }
 
     public void test_lda_zeropage() {
-        int pcBefore = cpu.read_pc();
+        int pcBefore = cpu.getPC();
         //Pre-write memory location
         ram.write(0xF3, 0x50);
 
         // LDA $00F3
         int addr = 0xF3;
         cpu.executeInstruction(0xA5, addr);
-        int a = cpu.read_a();
+        int a = cpu.getA();
         int expected = ram.read(addr);
-        int pcAfter = cpu.read_pc();
+        int pcAfter = cpu.getPC();
 
         assertEquals(a, expected, "lda_zeropage");
         assertEquals(pcAfter, (pcBefore + 2), "lda_zeropage_programcounter");
@@ -50,12 +50,12 @@ public class CPUTest {
         cpu.executeInstruction(0xA2, 0x13);
 
         //LDA $00B5,X ( E0 + 13 = F3 )
-        int pcBefore = cpu.read_pc();
+        int pcBefore = cpu.getPC();
         cpu.executeInstruction(0xB5, 0xE0);
 
-        int a = cpu.read_a();
+        int a = cpu.getA();
         int expected = ram.read(0xF3);
-        int pcAfter = cpu.read_pc();
+        int pcAfter = cpu.getPC();
 
         assertEquals(a, expected, "lda_zeropage_x");
         assertEquals(pcAfter, (pcBefore + 2), "lda_zeropage_x_programcounter");
@@ -71,7 +71,7 @@ public class CPUTest {
         //LDA $00B5,X ( $30 + $F0 = $0120 )
         cpu.executeInstruction(0xB5, 0x30);
 
-        int a = cpu.read_a();
+        int a = cpu.getA();
         int expected = ram.read(0x20);
 
         assertEquals(a, expected, "lda_zeropage_x_wraparound");
@@ -84,7 +84,7 @@ public class CPUTest {
         //LDA $ACDC
         cpu.executeInstruction(0xAD, 0xACDC);
 
-        int a = cpu.read_a();
+        int a = cpu.getA();
         int expected = ram.read(0xACDC);
 
         assertEquals(a, expected, "lda_absolute");
@@ -100,7 +100,7 @@ public class CPUTest {
         //LDA $AD88,X ($AD88 + $0024 = $ADAC)
         cpu.executeInstruction(0xBD, 0xAD88);
 
-        int a = cpu.read_a();
+        int a = cpu.getA();
         int expected = ram.read(0xADAC);
 
         assertEquals(a, expected, "lda_absolute_x");
@@ -116,7 +116,7 @@ public class CPUTest {
         //LDA $AD87, Y ($AD87 + $0025 = $ADAC)
         cpu.executeInstruction(0xB9, 0xAD87);
 
-        int a = cpu.read_a();
+        int a = cpu.getA();
         int expected = ram.read(0xADAC);
 
         assertEquals(a, expected, "lda_absolute_y");
@@ -132,7 +132,7 @@ public class CPUTest {
         //LDA ($AD, X) ($AD + $25 = $D2)
         cpu.executeInstruction(0xA1, 0xAD);
 
-        int a = cpu.read_a();
+        int a = cpu.getA();
         int expected = ram.read(0xD2);
 
         assertEquals(a, expected, "lda_indirect_x");
@@ -148,7 +148,7 @@ public class CPUTest {
         //LDA ($FF, X) ($FF + $04 = $03 with wraparound)
         cpu.executeInstruction(0xA1, 0xFF);
 
-        int a = cpu.read_a();
+        int a = cpu.getA();
         int expected = ram.read(0x03);
 
         assertEquals(a, expected, "lda_indirect_x_wraparound");
@@ -164,7 +164,7 @@ public class CPUTest {
         //LDA ($A000), Y ($A000 + $0010 = $A010)
         cpu.executeInstruction(0xB1, 0xA000);
 
-        int a = cpu.read_a();
+        int a = cpu.getA();
         int expected = ram.read(0xA010);
 
         assertEquals(a, expected, "lda_indirect_y");
@@ -176,7 +176,7 @@ public class CPUTest {
         // LDX #$B3
         int expected = 0xB3;
         cpu.executeInstruction(0xA2, expected);
-        int x = cpu.read_x();
+        int x = cpu.getX();
 
         assertEquals(x, expected, "ldx_immediate");
     }
@@ -187,7 +187,7 @@ public class CPUTest {
 
         cpu.executeInstruction(0xA6, 0xF3);
 
-        int x = cpu.read_x();
+        int x = cpu.getX();
         int expected = ram.read(0xF3);
 
         assertEquals(x, expected, "ldx_zeropage");
@@ -204,7 +204,7 @@ public class CPUTest {
 
         cpu.executeInstruction(0xB6, 0x60);
 
-        int x = cpu.read_x();
+        int x = cpu.getX();
         int expected = ram.read(0x70);
 
         assertEquals(x, expected, "ldx_zeropage_y");
@@ -221,7 +221,7 @@ public class CPUTest {
 
         cpu.executeInstruction(0xB6, 0x90);
 
-        int x = cpu.read_x();
+        int x = cpu.getX();
         int expected = ram.read(0x10);
 
         assertEquals(x, expected, "ldx_zeropage_y_wraparound");
@@ -233,7 +233,7 @@ public class CPUTest {
 
         cpu.executeInstruction(0xAE, 0x8080);
 
-        int x = cpu.read_x();
+        int x = cpu.getX();
         int expected = ram.read(0x8080);
 
         assertEquals(x, expected, "ldx_absolute");
@@ -248,7 +248,7 @@ public class CPUTest {
 
         cpu.executeInstruction(0xAE, 0x8080);
 
-        int x = cpu.read_x();
+        int x = cpu.getX();
         int expected = ram.read(0x8099);
 
         assertEquals(x, expected, "ldx_absolute_y");
@@ -259,7 +259,7 @@ public class CPUTest {
     public void test_ldy_immediate() {
         int expected = 0x6F;
         cpu.executeInstruction(0xA0, expected);
-        int y = cpu.read_y();
+        int y = cpu.getY();
         assertEquals(y, expected, "ldy_immediate");
     }
 

@@ -73,9 +73,9 @@ public class NesEmu {
             Header header = RomLoader.parseHeader(rom);
 
             cpu = new CPU(header.getPrgSize(), header.getChrSize(), rom);
-            int pc = cpu.read_pc();
+            int pc = cpu.getPC();
             while ((rom[pc] & 0xFF) != 0x00) {
-                pc = cpu.read_pc();
+                pc = cpu.getPC();
                 System.out.println();
                 System.out.println("PC: " + pc + " ($" + Integer.toHexString(pc) + ")");
                 System.out.println("Reading opcode: " + Integer.toHexString(rom[pc] & 0xFF));

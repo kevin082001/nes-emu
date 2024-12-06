@@ -14,8 +14,7 @@ public class CPU {
     private int A;
     private int X;
     private int Y;
-    //TODO make Stack class and move push/pop methods
-    private int stackPointer; //stack is from $0100 to $01FF
+    private Stack stack; //stack is from $0100 to $01FF
     private StatusRegister status; //status register
     private int PC;
     private boolean pageCrossed;
@@ -30,17 +29,16 @@ public class CPU {
         this.chrRom = new byte[chrRom];
         this.romFile = romFile;
         this.status = new StatusRegister();
-
-        //when pushing to the stack:
-        this.stackPointer = 0xFF;
+        this.stack = new Stack(ram);
         PC = 16;
-        //reset(); //TODO reset() is broken
+        //reset(); //TODO reset() is not working
     }
 
     public void increment_pc(int bytes) {
         PC = (PC + bytes) & 0xFFFF;
     }
 
+    //TODO fix this
     public void reset() {
         // Read initial program counter value from reset vector
         int prgSize = prgRom.length;
@@ -60,7 +58,7 @@ public class CPU {
         PC = (hi << 8) | low;
     }
 
-    //Instructions
+    // -- INSTRUCTIONS --
 
     public void executeInstruction(int opcode, int value) {
         //TODO cycle / clock speed management
@@ -1333,7 +1331,7 @@ public class CPU {
     private void jsr(int addr) {
         int value = ram.read(addr);
 
-        push(PC + 2);
+        stack.push(PC + 2);
         PC = value;
     }
 
@@ -1582,7 +1580,7 @@ public class CPU {
     }
 
     private void tsx() {
-        X = pop();
+        X = stack.pop();
         setZeroFlag(X);
         setNegativeFlag(X);
     }
@@ -1600,7 +1598,7 @@ public class CPU {
     }
 
     private void txs() {
-        push(X);
+        stack.push(X);
     }
 
 
@@ -1635,40 +1633,25 @@ public class CPU {
         PC = ((byte) ram.read(PC++)) + PC;
     }
 
-    // -- Stack operations --
-    private void push(int value) {
-        ram.write((0x0100 + stackPointer), value);
-        stackPointer = (stackPointer - 1) & 0xFF;
-    }
-
-    private int pop() {
-        stackPointer = (stackPointer + 1) & 0xFF;
-        return ram.read((0x0100 + stackPointer));
-    }
-
     // -- Getters and setters --
 
-    public int read_a() {
+    public int getA() {
         return A;
     }
 
-    public int read_x() {
+    public int getX() {
         return X;
     }
 
-    public int read_y() {
+    public int getY() {
         return Y;
     }
 
-    public int read_pc() {
+    public int getPC() {
         return PC;
     }
 
-    public void set_pc(int value) {
-        PC = value;
-    }
-
-    public long get_cycles() {
+    public long getCycles() {
         return cycles;
     }
 
