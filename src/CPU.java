@@ -66,42 +66,50 @@ public class CPU {
 
         switch (opcode) {
             case 0x69:
-                adc_immediate(value);
+                //adc_immediate(value);
+                adc(value, AddressMode.IMMEDIATE);
                 cycles += 2;
                 increment_pc(2);
                 break;
             case 0x65:
-                adc_zeropage(value);
+                //adc_zeropage(value);
+                adc(value, AddressMode.ZEROPAGE);
                 cycles += 3;
                 increment_pc(2);
                 break;
             case 0x75:
-                adc_zeropage_x(value);
+                //adc_zeropage_x(value);
+                adc(value, AddressMode.ZEROPAGE_X);
                 cycles += 4;
                 increment_pc(2);
                 break;
             case 0x6D:
-                adc_absolute(value);
+                //adc_absolute(value);
+                adc(value, AddressMode.ABSOLUTE);
                 cycles += 4;
                 increment_pc(3);
                 break;
             case 0x7D:
-                adc_absolute_x(value);
+                //adc_absolute_x(value);
+                adc(value, AddressMode.ABSOLUTE_X);
                 cycles += 4 + (pageCrossed ? 1 : 0);
                 increment_pc(3);
                 break;
             case 0x79:
-                adc_absolute_y(value);
+                //adc_absolute_y(value);
+                adc(value, AddressMode.ABSOLUTE_Y);
                 cycles += 4 + (pageCrossed ? 1 : 0);
                 increment_pc(3);
                 break;
             case 0x61:
-                adc_indirect_x(value);
+                //adc_indirect_x(value);
+                adc(value, AddressMode.INDIRECT_X);
                 cycles += 6;
                 increment_pc(2);
                 break;
             case 0x71:
-                adc_indirect_y(value);
+                //adc_indirect_y(value);
+                adc(value, AddressMode.INDIRECT_Y);
                 cycles += 5 + (pageCrossed ? 1 : 0);
                 increment_pc(2);
                 break;
@@ -614,16 +622,45 @@ public class CPU {
 
     // -- ADC --
 
-    private void adc_immediate(int value) {
-        int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
-        A = result;
-        setCarryFlag(value);
-        setZeroFlag(value);
-        setOverflowFlag(value, result);
-        setNegativeFlag(value);
+    private void adc(int value, AddressMode mode) {
+        //possible modes: imm, zpg, zpg_x, abs, abs_x, abs_y, ind_x, ind_y
+        if (mode == AddressMode.IMMEDIATE) {
+            int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
+            A = result;
+            setCarryFlag(value);
+            setZeroFlag(value);
+            setOverflowFlag(value, result);
+            setNegativeFlag(value);
+            return;
+        }
+
+        int _addr;
+
+        if (mode == AddressMode.ZEROPAGE_X || mode == AddressMode.INDIRECT_X) {
+            _addr = value + X;
+            if (_addr > 0xFF) {
+                _addr -= 0x100;
+            }
+            value = _addr;
+        } else if (mode == AddressMode.ABSOLUTE_X || mode == AddressMode.ABSOLUTE_Y) {
+            _addr = value + (mode == AddressMode.ABSOLUTE_X ? X : Y);
+            value = _addr;
+        }
+
+        if (mode == AddressMode.ZEROPAGE || mode == AddressMode.ABSOLUTE || mode == AddressMode.ABSOLUTE_X
+                || mode == AddressMode.ABSOLUTE_Y || mode == AddressMode.ZEROPAGE_X
+                || mode == AddressMode.INDIRECT_X || mode == AddressMode.INDIRECT_Y) {
+            int memory = ram.read(value);
+            int result = memory + A + (status.isCarryFlagSet() ? 1 : 0);
+            A = result;
+            setCarryFlag(memory);
+            setZeroFlag(memory);
+            setOverflowFlag(memory, result);
+            setNegativeFlag(memory);
+        }
     }
 
-    private void adc_zeropage(int addr) {
+    /*private void adc_zeropage(int addr) {
         int value = ram.read(addr);
         int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
         A = result;
@@ -702,7 +739,7 @@ public class CPU {
         setZeroFlag(value);
         setOverflowFlag(value, result);
         setNegativeFlag(value);
-    }
+    }*/
 
     // -- AND --
 
