@@ -17,7 +17,6 @@ public class CPU {
     private Stack stack; //stack is from $0100 to $01FF
     private StatusRegister status; //status register
     private int PC;
-    private boolean pageCrossed;
 
     private byte[] prgRom;
     private byte[] chrRom;
@@ -87,12 +86,12 @@ public class CPU {
                 break;
             case 0x7D:
                 adc_absolute_x(value);
-                cycles += 4 + (pageCrossed ? 1 : 0);
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0x79:
                 adc_absolute_y(value);
-                cycles += 4 + (pageCrossed ? 1 : 0);
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0x61:
@@ -102,7 +101,7 @@ public class CPU {
                 break;
             case 0x71:
                 adc_indirect_y(value);
-                cycles += 5 + (pageCrossed ? 1 : 0);
+                cycles += 5;
                 increment_pc(2);
                 break;
             case 0x29:
@@ -127,12 +126,12 @@ public class CPU {
                 break;
             case 0x3D:
                 and_absolute_x(value);
-                cycles += 4 + (pageCrossed ? 1 : 0);
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0x39:
                 and_absolute_y(value);
-                cycles += 4 + (pageCrossed ? 1 : 0);
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0x21:
@@ -142,7 +141,7 @@ public class CPU {
                 break;
             case 0x31:
                 and_indirect_y(value);
-                cycles += 5 + (pageCrossed ? 1 : 0);
+                cycles += 5;
                 increment_pc(2);
                 break;
             case 0x0A:
@@ -253,12 +252,12 @@ public class CPU {
                 break;
             case 0xDD:
                 cmp_absolute_x(value);
-                cycles += 4; //TODO if page crossed it's 5 cycles
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0xD9:
                 cmp_absolute_y(value);
-                cycles += 4; //TODO if page crossed it's 5 cycles
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0xC1:
@@ -268,7 +267,7 @@ public class CPU {
                 break;
             case 0xD1:
                 cmp_indirect_y(value);
-                cycles += 5; //TODO if page crossed it's 6 cycles
+                cycles += 5;
                 increment_pc(2);
                 break;
             case 0xE0:
@@ -353,12 +352,12 @@ public class CPU {
                 break;
             case 0x5D:
                 eor_absolute_x(value);
-                cycles += 4 + (pageCrossed ? 1 : 0);
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0x59:
                 eor_absolute_y(value);
-                cycles += 4 + (pageCrossed ? 1 : 0);
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0x41:
@@ -368,7 +367,7 @@ public class CPU {
                 break;
             case 0x51:
                 eor_indirect_y(value);
-                cycles += 5 + (pageCrossed ? 1 : 0);
+                cycles += 5;
                 increment_pc(2);
                 break;
             case 0xE6:
@@ -438,12 +437,12 @@ public class CPU {
                 break;
             case 0xBD:
                 lda_absolute_x(value);
-                cycles += 4; //TODO if page crossed it's 5 cycles
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0xB9:
                 lda_absolute_y(value);
-                cycles += 4; //TODO if page crossed it's 5 cycles
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0xA1:
@@ -453,7 +452,7 @@ public class CPU {
                 break;
             case 0xB1:
                 lda_indirect_y(value);
-                cycles += (5 + (pageCrossed ? 1 : 0)); //TODO if page crossed it's 6 cycles
+                cycles += 5;
                 increment_pc(2);
                 break;
             case 0xA2:
@@ -478,7 +477,7 @@ public class CPU {
                 break;
             case 0xBE:
                 ldx_absolute_y(value);
-                cycles += 4; //TODO if page crossed it's 5 cycles
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0xA0:
@@ -503,7 +502,7 @@ public class CPU {
                 break;
             case 0xBC:
                 ldy_absolute_x(value);
-                cycles += 4; //TODO if page crossed it's 5 cycles
+                cycles += 4;
                 increment_pc(3);
                 break;
             case 0x78:
@@ -659,6 +658,9 @@ public class CPU {
 
     private void adc_absolute_x(int addr) {
         int _addr = addr + X;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
         A = result;
@@ -670,6 +672,9 @@ public class CPU {
 
     private void adc_absolute_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
         A = result;
@@ -695,6 +700,9 @@ public class CPU {
 
     private void adc_indirect_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         int result = value + A + (status.isCarryFlagSet() ? 1 : 0);
         A = result;
@@ -739,6 +747,9 @@ public class CPU {
 
     private void and_absolute_x(int addr) {
         int _addr = addr + X;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         A &= value;
         setZeroFlag(A);
@@ -747,6 +758,9 @@ public class CPU {
 
     private void and_absolute_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         A &= value;
         setZeroFlag(A);
@@ -766,6 +780,9 @@ public class CPU {
 
     private void and_indirect_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         A &= value;
         setZeroFlag(A);
@@ -1019,6 +1036,9 @@ public class CPU {
 
     private void cmp_absolute_x(int addr) {
         int _addr = addr + X;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         int result = A - value;
         int bit7 = (int) Integer.toBinaryString(result).charAt(0);
@@ -1029,6 +1049,9 @@ public class CPU {
 
     private void cmp_absolute_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         int result = A - value;
         int bit7 = (int) Integer.toBinaryString(result).charAt(0);
@@ -1052,6 +1075,9 @@ public class CPU {
 
     private void cmp_indirect_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         int result = A - value;
         int bit7 = (int) Integer.toBinaryString(result).charAt(0);
@@ -1220,6 +1246,9 @@ public class CPU {
 
     private void eor_absolute_x(int addr) {
         int _addr = addr + X;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         int bit7 = (int) Integer.toBinaryString(A).charAt(0);
         A ^= value;
@@ -1229,6 +1258,9 @@ public class CPU {
 
     private void eor_absolute_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         int bit7 = (int) Integer.toBinaryString(A).charAt(0);
         A ^= value;
@@ -1250,6 +1282,9 @@ public class CPU {
 
     private void eor_indirect_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         int value = ram.read(_addr);
         int bit7 = (int) Integer.toBinaryString(A).charAt(0);
         A ^= value;
@@ -1369,6 +1404,9 @@ public class CPU {
 
     private void lda_absolute_x(int addr) {
         int _addr = addr + X;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         A = ram.read(_addr);
         setZeroFlag(A);
         setNegativeFlag(A);
@@ -1376,6 +1414,9 @@ public class CPU {
 
     private void lda_absolute_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         A = ram.read(_addr);
         setZeroFlag(A);
         setNegativeFlag(A);
@@ -1393,6 +1434,9 @@ public class CPU {
 
     private void lda_indirect_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         A = ram.read(_addr);
         setZeroFlag(A);
         setNegativeFlag(A);
@@ -1432,6 +1476,9 @@ public class CPU {
 
     private void ldx_absolute_y(int addr) {
         int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         X = ram.read(_addr);
         setZeroFlag(X);
         setNegativeFlag(X);
@@ -1471,6 +1518,9 @@ public class CPU {
 
     private void ldy_absolute_x(int addr) {
         int _addr = addr + X;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
         Y = ram.read(_addr);
         setZeroFlag(Y);
         setNegativeFlag(Y);
@@ -1631,6 +1681,14 @@ public class CPU {
     private void branch(int value) {
         //In halfnes project, it's implemented that way. I don't know if this fits this project
         PC = ((byte) ram.read(PC++)) + PC;
+    }
+
+    // -- Page cross check --
+
+    private boolean pageCrossed(int addr, int newAddr) {
+        int page = addr / 256;
+        int newPage = newAddr / 256;
+        return newPage > page;
     }
 
     // -- Getters and setters --

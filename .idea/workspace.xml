@@ -7,8 +7,6 @@
     <list default="true" id="5b1bf2df-1471-4543-9e35-c863af78d414" name="Changes" comment="initial commit">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CPU.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/CPU.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CPUTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/CPUTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/NesEmu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/NesEmu.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -108,17 +106,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/CPU.java</url>
-          <line>57</line>
+          <line>56</line>
           <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/CPU.java</url>
-          <line>328</line>
-          <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/CPU.java</url>
-          <line>1339</line>
+          <line>1374</line>
           <properties class="CPU" method="lda_immediate">
             <option name="EMULATED" value="true" />
             <option name="WATCH_EXIT" value="false" />
