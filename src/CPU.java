@@ -505,6 +505,76 @@ public class CPU {
                 cycles += 4;
                 increment_pc(3);
                 break;
+            case 0x4A:
+                lsr_accumulator();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0x46:
+                lsr_zeropage(value);
+                cycles += 5;
+                increment_pc(2);
+                break;
+            case 0x56:
+                lsr_zeropage_x(value);
+                cycles += 6;
+                increment_pc(2);
+                break;
+            case 0x4E:
+                lsr_absolute(value);
+                cycles += 6;
+                increment_pc(3);
+                break;
+            case 0x5E:
+                lsr_absolute_x(value);
+                cycles += 7;
+                increment_pc(3);
+                break;
+            case 0xEA:
+                nop();
+                cycles += 2;
+                increment_pc(1);
+                break;
+            case 0x09:
+                ora_immediate(value);
+                cycles += 2;
+                increment_pc(2);
+                break;
+            case 0x05:
+                ora_zeropage(value);
+                cycles += 3;
+                increment_pc(2);
+                break;
+            case 0x15:
+                ora_zeropage_x(value);
+                cycles += 4;
+                increment_pc(2);
+                break;
+            case 0x0D:
+                ora_absolute(value);
+                cycles += 4;
+                increment_pc(3);
+                break;
+            case 0x1D:
+                ora_absolute_x(value);
+                cycles += 4; //TODO 5 if page crossed
+                increment_pc(3);
+                break;
+            case 0x19:
+                ora_absolute_y(value);
+                cycles += 4; //TODO 5 if page crossed
+                increment_pc(3);
+                break;
+            case 0x01:
+                ora_indirect_x(value);
+                cycles += 6;
+                increment_pc(2);
+                break;
+            case 0x11:
+                ora_indirect_y(value);
+                cycles += 5; //TODO 6 if page crossed
+                increment_pc(2);
+                break;
             case 0x78:
                 sei();
                 cycles += 2;
@@ -1524,6 +1594,154 @@ public class CPU {
         Y = ram.read(_addr);
         setZeroFlag(Y);
         setNegativeFlag(Y);
+    }
+
+    // -- LSR --
+
+    private void lsr_accumulator() {
+        int bit0 = (int) Integer.toBinaryString(A).charAt(7);
+        A >>= 1;
+        int bit7 = (int) Integer.toBinaryString(A).charAt(0);
+        status.setCarryFlagSet(bit0 == 1);
+        setZeroFlag(A);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void lsr_zeropage(int addr) {
+        int value = ram.read(addr);
+        int bit0 = (int) Integer.toBinaryString(value).charAt(7);
+        value >>= 1;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        status.setCarryFlagSet(bit0 == 1);
+        setZeroFlag(value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void lsr_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        int bit0 = (int) Integer.toBinaryString(value).charAt(7);
+        value >>= 1;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        status.setCarryFlagSet(bit0 == 1);
+        setZeroFlag(value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void lsr_absolute(int addr) {
+        int value = ram.read(addr);
+        int bit0 = (int) Integer.toBinaryString(value).charAt(7);
+        value >>= 1;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        status.setCarryFlagSet(bit0 == 1);
+        setZeroFlag(value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void lsr_absolute_x(int addr) {
+        int _addr = addr + X;
+        int value = ram.read(_addr);
+        int bit0 = (int) Integer.toBinaryString(value).charAt(7);
+        value >>= 1;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        status.setCarryFlagSet(bit0 == 1);
+        setZeroFlag(value);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    // -- NOP --
+
+    private void nop() {
+        //NOP does nothing
+        return;
+    }
+
+    // -- ORA --
+
+    private void ora_immediate(int value) {
+        value = A | value;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        setZeroFlag(A);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void ora_zeropage(int addr) {
+        int value = ram.read(addr);
+        value = A | value;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        setZeroFlag(A);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void ora_zeropage_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        value = A | value;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        setZeroFlag(A);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void ora_absolute(int addr) {
+        int value = ram.read(addr);
+        value = A | value;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        setZeroFlag(A);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void ora_absolute_x(int addr) {
+        int _addr = addr + X;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
+        int value = ram.read(_addr);
+        value = A | value;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        setZeroFlag(A);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void ora_absolute_y(int addr) {
+        int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
+        int value = ram.read(_addr);
+        value = A | value;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        setZeroFlag(A);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void ora_indirect_x(int addr) {
+        int _addr = addr + X;
+        if (_addr > 0xFF) {
+            _addr -= 0x100;
+        }
+        int value = ram.read(_addr);
+        value = A | value;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        setZeroFlag(A);
+        status.setNegativeFlagSet(bit7 == 1);
+    }
+
+    private void ora_indirect_y(int addr) {
+        int _addr = addr + Y;
+        if (pageCrossed(addr, _addr)) {
+            cycles++;
+        }
+        int value = ram.read(_addr);
+        value = A | value;
+        int bit7 = (int) Integer.toBinaryString(value).charAt(0);
+        setZeroFlag(A);
+        status.setNegativeFlagSet(bit7 == 1);
     }
 
     // -- SEI --
